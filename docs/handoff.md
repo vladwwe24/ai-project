@@ -1,7 +1,7 @@
 # ApplianceTrack — Session Handoff
 
-**Date:** 2026-05-11  
-**Session status:** Step 12 complete, ready to begin Step 13
+**Date:** 2026-05-15
+**Session status:** Sprint 2 complete + modal system overhauled + production build verified
 
 ---
 
@@ -12,7 +12,7 @@ Covers the full job lifecycle: customer intake → scheduling on a day timeline 
 
 All data stored in **localStorage** (mock CRUD interface, designed to be swapped for a real API later). No backend. No auth for now.
 
-Full plan: `docs/architecture.md` (FSD structure), `docs/checklist.md` (step-by-step progress), and the original plan file at `docs/plan.md` in the project root.
+Full plan: `docs/architecture.md` (FSD structure), `docs/checklist.md` (step-by-step progress), `docs/plan.md` (original sprint 1 plan), and `docs/plan-v2.md` (Sprint 2 spec).
 
 ---
 
@@ -29,118 +29,153 @@ Full plan: `docs/architecture.md` (FSD structure), `docs/checklist.md` (step-by-
 | Routing | React Router v7 |
 | IDs | nanoid |
 | Icons | react-icons |
-| Tests | Jest + React Testing Library (not yet configured) |
+| Tests | Vitest + happy-dom (29 unit tests passing) |
 | Node | v20.9.0 (important: too old for create-vite@9 — use @6 if re-scaffolding) |
 
 ---
 
-## What Is Done (Steps 1–12 ✅)
+## What Is Done
 
-### Step 1 — Project Scaffolding + Docs
-- `vite.config.ts`, `tsconfig.app.json`, `index.html`, `package.json` — all configured
-- `src/app/providers/AppProvider.tsx` — ChakraProvider with Chakra v3 API
-- `src/app/styles/global.scss` — CSS reset, box-sizing, `min-height: 100dvh`
-- `docs/architecture.md`, `docs/checklist.md`, `docs/handoff.md`
-- Verified: `npm run type-check` zero errors, dev server runs
+### Steps 1–15 (Sprint 1) and S2-0 through S2-6 (Sprint 2)
+All previously completed — see `docs/sprints/sprint-one.md` and `docs/plan-v2.md` for the full record. Summary of Sprint 2 steps:
 
-### Step 2 — TypeScript Types
-- `src/entities/customer/model/types.ts`
-- `src/entities/job/model/types.ts` — includes `COMPLETED` in `JobStatus`, `scheduledAt` required, `completedAt?`, `signature?`
-- `src/entities/estimate/model/types.ts` — includes `estimateNumber: string`, `approvalToken?`, `approvedBy?`
-- `src/entities/invoice/model/types.ts` — `invoiceNumber` format `INV-YYYY-NNNN`
-- `src/entities/line-item/model/types.ts`
-- `src/shared/config/storageKeys.ts` — `STORAGE_KEYS` constants
+- **S2-0** — `AppModal` shared wrapper (`src/shared/ui/AppModal.tsx`)
+- **S2-1** — Estimate widget bug fixes + 6-digit zero-padded estimate numbers
+- **S2-2** — Customer creation modal with validation + Nominatim address autocomplete
+- **S2-3** — Job creation form: searchable customer dropdown, `+ Customer` quick-create, separate date/start/end time fields, removed `issue` field
+- **S2-4** — Job page: StatusActionBar removed, Reschedule modal added
+- **S2-5** — Invoice widget: view/edit toggle, Labor/Materials sections, taxable checkboxes, payment confirmation dialogs, auto-complete job on payment
+- **S2-6** — Notes widget: `Note[]` type, collapsed/expanded card UI
 
-### Step 3 — localStorage Service Layer
-- `src/shared/api/storage.ts` — `getAll`, `getById`, `create`, `update`, `remove`
-- `src/shared/lib/index.ts` — `nanoid`, `formatCurrency`, `formatDate`, `formatTime`, `generateInvoiceNumber`, `generateEstimateNumber`
-- `src/shared/api/seed.ts` — `seedIfEmpty()` called in `main.tsx`
+---
 
-### Step 4 — React Context + useReducer Store
-- `src/app/providers/AppProvider.tsx` — holds `customers[]`, `jobs[]`, `estimates[]`
-- **All reducers are pure** — zero storage calls inside reducers
-- **localStorage persistence via `useEffect`** — three effects in `AppProvider` write each slice on state change; this fixed a React StrictMode double-invoke bug that was creating duplicate records
-- `src/entities/customer/model/slice.ts`
-- `src/entities/job/model/slice.ts`
-- `src/entities/estimate/model/slice.ts`
+## This Session — Modal System Overhaul + Build Fix
 
-### Step 5 — Routing + App Shell
-- `src/app/router.tsx` — all routes defined (note: file is `router.tsx`, not `app/index.tsx` as per checklist)
-- `src/widgets/app-shell/ui/AppShell.tsx`
-- `src/widgets/app-shell/ui/Navbar.tsx`
-- `src/widgets/app-shell/ui/Sidebar.tsx`
-- `src/widgets/app-shell/ui/BottomNav.tsx` — react-icons, mobile bottom nav
+### Session goal
+Fix the long-standing **body `pointer-events: none` / `overflow: hidden` leak** that made the app unclickable after closing the estimate modal. Implement a proper React portal system so all modals render into a dedicated DOM node outside the app's component tree.
 
-### Step 6 — Shared UI Components
-- `src/entities/job/ui/JobStatusBadge.tsx`
-- `src/entities/job/ui/PriorityBadge.tsx`
-- `src/entities/estimate/ui/EstimateStatusBadge.tsx`
-- `src/entities/invoice/ui/InvoiceStatusBadge.tsx`
-- `src/shared/ui/EmptyState.tsx`
-- `src/shared/ui/ConfirmDialog.tsx`
-- `src/shared/ui/PageHeader.tsx`
+---
 
-### Step 7 — Dashboard Page
-- `src/pages/dashboard/DashboardPage.tsx` — job counter stat cards, earnings summary, action-required jobs list
+### Fix 1 — EstimateDetailModal migrated to AppModal
 
-### Step 8 — Settings Page
-- `src/pages/settings/SettingsPage.tsx` — Default Tax Rate field, save with timeout feedback
-- `src/shared/config/settings.ts` — `getSettings()`, `saveSettings()` backed by localStorage
+**File:** `src/widgets/estimate-widget/ui/EstimateDetailModal.tsx`
 
-### Step 9 — Customer Module
-- `src/pages/customers/CustomerListPage.tsx` — search by name or phone
-- `src/pages/customers/CustomerFormPage.tsx`
-- `src/pages/customers/CustomerDetailPage.tsx`
-- `src/entities/customer/ui/CustomerCard.tsx`
+**Before:** rolled its own `DialogRoot / DialogBackdrop / DialogPositioner / DialogContent` stack.
 
-### Step 10 — Job Module
-- `src/entities/job/model/statusHelpers.ts` — `getNextStatus`, `getAdvanceLabel`, `isTerminal`, `canFinishJob`
-- `src/widgets/job-card/ui/JobCard.tsx`
-- `src/features/job-status/ui/StatusActionBar.tsx`
-- `src/pages/jobs/JobListPage.tsx`
-- `src/pages/jobs/JobDetailPage.tsx` — header → StatusActionBar → Invoice placeholder → EstimateWidget → Notes
+**After:** uses `<AppModal>` with:
+- `title` — `<Flex>` with estimate number + `EstimateStatusBadge` (works because `AppModal.title` is now `ReactNode`)
+- `footer` — Delete / Save / Send buttons, only rendered when `isEditable`
+- `children` — body content wrapped in `<Box overflowY="auto" maxH="60vh">`
+- `ConfirmDialog` for delete renders as a sibling (outside `AppModal`), unchanged
 
-### Step 11 — Timeline + Create Job Modal
-- `src/widgets/timeline-grid/lib/timeUtils.ts` — `GRID_START_HOUR=0`, `GRID_END_HOUR=24`, `HOUR_HEIGHT=80`, helpers
-- `src/widgets/timeline-grid/ui/DateStrip.tsx`
-- `src/widgets/timeline-grid/ui/JobBlock.tsx`
-- `src/widgets/timeline-grid/ui/TimelineGrid.tsx`
-- `src/widgets/create-job-modal/ui/CreateJobModal.tsx`
-- `src/pages/timeline/TimelinePage.tsx`
+**`AppModal` change:** `title: string` → `title: ReactNode` (backward-compatible; all existing callers passed plain strings which satisfy `ReactNode`).
 
-### Step 12 — Estimate Widget
-- `src/entities/estimate/model/calcHelpers.ts` — `calcSubtotal`, `calcTax`, `calcTotal`
-- `src/entities/estimate/model/slice.ts` — `selectEstimatesByJob` (returns **array** — multiple per job), `selectEstimateByToken`
-- `src/widgets/line-item-editor/ui/LineItemRow.tsx` — editable/read-only row (description, qty, unit price, delete)
-- `src/widgets/line-item-editor/ui/LineItemEditor.tsx` — row list + "Add item" button
-- `src/widgets/estimate-widget/ui/EstimateWidget.tsx` — list of estimate cards; `MdAdd` icon always in header; `selectedId` + `modalOpen` decoupled state
-- `src/widgets/estimate-widget/ui/EstimateDetailModal.tsx` — Chakra v3 Dialog with `lazyMount` + `unmountOnExit`; editable line items + tax rate; Save / Send / Delete in footer; approval link shown when SENT
-- `src/features/estimate-send/ui/SendEstimateButton.tsx` — generates `nanoid()` token, sets status SENT, copies approval link to clipboard
-- `src/features/estimate-approve/ui/ApprovalForm.tsx` — public approve/decline form with customer name input
-- `src/pages/estimates/PublicApprovalPage.tsx` — no-shell page at `/approve/:token`; looks up estimate by token via context
-- Verified: `npm run type-check` zero errors, dev server runs
+---
+
+### Fix 2 — Root cause of the unclickable-body bug
+
+**File:** `src/widgets/estimate-widget/ui/EstimateWidget.tsx`
+
+**Root cause:** `closeModal()` was calling both `setSelectedId(null)` and `setModalOpen(false)` in the same event handler. React batches these into one render, making `displayEstimate` null immediately. This unmounted `EstimateDetailModal` from the React tree before Chakra/Zag could run its close animation and restore `<body>` styles.
+
+**Fix — `closeModal()` now only does one thing:**
+```tsx
+function closeModal() {
+  setModalOpen(false)
+  // Never clear selectedId here — clearing it simultaneously unmounts the
+  // modal before Chakra's close animation runs, leaking body overflow/pointer-events.
+}
+```
+
+**Fix — `displayEstimate` logic simplified:**
+```tsx
+// Before (modalOpen-gated, broken for delete case):
+const displayEstimate = modalOpen
+  ? (selectedEstimateFromState ?? stableEstimateRef.current)
+  : selectedEstimateFromState
+
+// After (always falls back to ref — handles both normal close and delete-while-open):
+const displayEstimate = selectedEstimateFromState ?? stableEstimateRef.current
+```
+
+With this, `EstimateDetailModal` stays in the React tree (rendered with `open={false}`) while Chakra animates the dialog closed and cleans up body styles. The `stableEstimateRef` covers the delete-while-open case: when the estimate disappears from state, the ref still holds it so the component doesn't unmount mid-animation.
+
+---
+
+### Fix 3 — React Portal system
+
+**Why:** Chakra v3's `DialogPositioner` renders in the normal DOM tree by default (no automatic portal). Parent components with CSS `transform`, `overflow: hidden`, or stacking contexts can clip or trap modal z-indexes.
+
+**`index.html`:** Added `<div id="modal-root"></div>` as a sibling to `<div id="root">`. All modal DOM now renders here.
+
+**New file: `src/shared/ui/ModalPortal.tsx`:**
+```tsx
+import { createPortal } from 'react-dom'
+import type { ReactNode } from 'react'
+
+export function ModalPortal({ children }: { children: ReactNode }) {
+  return createPortal(children, document.getElementById('modal-root')!)
+}
+```
+
+**`AppModal.tsx`:** wrapped its `DialogRoot` in `<ModalPortal>`. Every component that uses `AppModal` gets portal behavior automatically — no changes needed in callers.
+
+**`ConfirmDialog.tsx`:** wrapped its `DialogRoot` in `<ModalPortal>` directly.
+
+**`ExportModal.tsx`:** migrated from raw `DialogRoot` → `AppModal`. Gets portal for free.
+
+**`CreateJobModal.tsx`:** migrated from raw `DialogRoot` → `AppModal`. Gets portal for free. The nested `CreateCustomerModal` (which also uses `AppModal`) portals independently — both land in `#modal-root` as separate `DialogRoot` instances; Chakra/Zag handles z-index stacking.
+
+**Complete modal inventory after this session:**
+
+| Component | Renders via |
+|-----------|-------------|
+| `AppModal` | `ModalPortal` → `#modal-root` |
+| `ConfirmDialog` | `ModalPortal` → `#modal-root` |
+| `EstimateDetailModal` | `AppModal` → portal ✓ |
+| `CreateCustomerModal` | `AppModal` → portal ✓ |
+| `CreateJobModal` | `AppModal` → portal ✓ |
+| `ExportModal` | `AppModal` → portal ✓ |
+| `PaymentActionBar` (partial) | `AppModal` → portal ✓ |
+| `PaymentActionBar` (confirm paid) | `ConfirmDialog` → portal ✓ |
+| `JobDetailPage` (reschedule) | `AppModal` → portal ✓ |
+| `NotesWidget` (delete note) | `ConfirmDialog` → portal ✓ |
+
+---
+
+### Fix 4 — Production build errors (caught by `tsc -b`, missed by `tsc --noEmit`)
+
+`npm run type-check` uses `tsc --noEmit` which skips test files and doesn't catch all project references. `npm run build` uses `tsc -b` which is stricter. Five pre-existing errors were fixed:
+
+| File | Error | Fix |
+|------|-------|-----|
+| `src/entities/job/model/types.ts` | `JobStatus.CANCELLED` used in tests but missing from the const object | Added `CANCELLED: 'CANCELLED'` |
+| `src/entities/job/ui/JobStatusBadge.tsx` | `Record<JobStatus, string>` maps incomplete after adding CANCELLED | Added `CANCELLED: 'red'` and `'Cancelled'` entries |
+| `src/pages/jobs/JobDetailPage.tsx` | `...job` spread in a closure — TypeScript doesn't narrow `job: Job \| undefined` inside inner functions even after an early return guard | Changed to `...job!` |
+| `src/widgets/job-card/ui/JobCard.tsx` | `noOfLines` prop removed in Chakra v3 | Replaced with `style={{ WebkitLineClamp: 1, display: '-webkit-box', WebkitBoxOrient: 'vertical', overflow: 'hidden' }}` |
+| `src/widgets/notes-widget/ui/NotesWidget.tsx` | Same `noOfLines` issue | Same CSS fix, `WebkitLineClamp: 2` |
+| `vite.config.ts` | `test` block unknown to Vite's `defineConfig` types | Changed import from `'vite'` → `'vitest/config'` |
+
+**Production build output:**
+```
+dist/index.html                   0.53 kB │ gzip:   0.32 kB
+dist/assets/index-*.css           0.15 kB │ gzip:   0.13 kB
+dist/assets/index-*.js          686.23 kB │ gzip: 198.33 kB
+✓ built in 4.44s
+```
+The 686 kB chunk warning is expected (Chakra UI is large). Not an error.
+
+**Preview server:** `npm run preview` → `http://localhost:4173` (or 4174 if 4173 is occupied).
 
 ---
 
 ## Critical Notes for Next Session
 
-### ⚠️ Multiple estimates per job (design change from original spec)
-`selectEstimatesByJob` returns an array. Each job can have many estimates. `EstimateWidget` renders a list of estimate cards (estimateNumber + createdAt + status badge); tapping one opens `EstimateDetailModal`. The `+` (MdAdd) icon in the widget header always creates a new estimate. Estimate numbers are formatted `EST-YYYY-NNNN` using `generateEstimateNumber(estimates.length)`.
+### ⚠️ Modal architecture — THE RULE
+`AppModal` is the **only** modal wrapper. Never create a raw `DialogRoot` outside of `AppModal` or `ConfirmDialog`. Both of these wrap in `ModalPortal` which portals to `#modal-root`. Any new modal must use `AppModal`.
 
-### ⚠️ Reducers are pure — all storage writes are in AppProvider useEffect
-Never add `storage.create/update/remove` calls inside reducer functions — React StrictMode double-invokes reducers, which caused duplicate localStorage records. The three `useEffect` hooks in `AppProvider` are the only place state is persisted to localStorage.
-
-### ⚠️ Chakra v3 Dialog body-style cleanup — use `lazyMount` + `unmountOnExit`
-Chakra v3's `DialogRoot` (Zag.js state machine) applies `overflow: hidden` to `<body>` when a dialog opens. If the React component is unmounted without the dialog going through its proper close transition, the body styles are never removed and the page becomes unclickable. **Fix**: always add `lazyMount` and `unmountOnExit` props to every `DialogRoot`. Also decouple dialog visibility (`open` boolean state) from whether the wrapper component is in the tree — keep the wrapper mounted while an item is selected, control visibility with the `open` prop.
-
-### ⚠️ EstimateDetailModal open/close pattern
-In `EstimateWidget`, `selectedId` (which estimate) and `modalOpen` (dialog visibility) are two separate pieces of state. `closeModal()` only sets `modalOpen = false` — it never clears `selectedId`. This allows Chakra to run its close animation and cleanup before the wrapper unmounts. When reopening the same estimate, only `modalOpen` needs to change.
-
-### ⚠️ Invoice section in JobDetailPage is still a placeholder
-`JobDetailPage.tsx` has a bordered placeholder box for the Invoice section. It will be replaced in Step 13.
-
-### ⚠️ router.tsx, not app/index.tsx
-Checklist specifies `src/app/index.tsx` but the actual file is `src/app/router.tsx`. Do not rename it.
+### ⚠️ The closeModal pattern — do not revert
+When controlling a modal from a parent widget (like `EstimateWidget`), **never** clear the selected item ID in the same call as `setModalOpen(false)`. These batch together and unmount the modal before Chakra can animate. Only call `setModalOpen(false)`. Let `stableEstimateRef` (or similar) keep the data alive for the animation.
 
 ### ⚠️ Chakra UI v3 API (differs from v2)
 ```tsx
@@ -148,63 +183,107 @@ import { ChakraProvider } from '@chakra-ui/react'
 import { system } from '@chakra-ui/react/preset'
 <ChakraProvider value={system}>{children}</ChakraProvider>
 ```
-- `ChakraProvider` takes a `value` prop, not `theme`
-- `colorPalette` not `colorScheme` for colored components
-- Dialog uses `DialogRoot`, `DialogPositioner`, `DialogContent`, etc. (compound components)
-- Always add `lazyMount` + `unmountOnExit` to every `DialogRoot`
-- Always check v3 docs — many component props changed from v2
+- `colorPalette` not `colorScheme`
+- Dialog: `DialogRoot`, `DialogPositioner`, `DialogContent`, etc. (compound components)
+- **Always add `lazyMount` + `unmountOnExit` to every `DialogRoot`** — omitting these causes `overflow: hidden; pointer-events: none` to leak onto `<body>` after close
+- `noOfLines` prop **does not exist** in v3 — use `style={{ WebkitLineClamp: N, display: '-webkit-box', WebkitBoxOrient: 'vertical', overflow: 'hidden' }}`
 
-### ⚠️ Native select pattern — do not use Chakra v3 Select
-Use a plain native `<select>` with inline styles and `var(--chakra-colors-border)` for the border. Established in `JobListPage` and `CreateJobModal`.
+### ⚠️ Reducers are pure — all storage writes are in AppProvider useEffect
+Never add `storage.create/update/remove` calls inside reducer functions.
 
-### ⚠️ TypeScript strict mode quirks
-- `noUnusedLocals` and `noUnusedParameters` are ON — unused imports = type error
-- `erasableSyntaxOnly` is ON — no `const enum`, no decorators
-- `noUncheckedSideEffectImports` is ON — side-effect imports must be intentional
+### ⚠️ StatusActionBar is orphaned
+`src/features/job-status/ui/StatusActionBar.tsx` still exists on disk but is not rendered anywhere. Safe to delete.
+
+### ⚠️ LineItem type has optional fields
+`taxable?: boolean` and `category?: 'labor' | 'material'` are optional so existing localStorage data is backward-compatible. Treat `undefined` as `true` (taxable) and `'labor'` respectively in all calculations.
+
+### ⚠️ Invoice tax vs estimate tax
+`InvoiceWidget` calls `calcTaxableSubtotal(lineItems)` before `calcTax`. `EstimateDetailModal` calls `calcSubtotal(lineItems)` — estimates do not have the taxable concept.
+
+### ⚠️ Job notes type
+`notes` on `Job` is `Note[] | undefined`. Old localStorage data with a string `notes` value is silently ignored.
+
+### ⚠️ Nominatim rate limit
+Address autocomplete in `CreateCustomerModal` uses a 400ms debounce on `https://nominatim.openstreetmap.org`. Do not remove the debounce.
 
 ### ⚠️ Node version constraint
-- Running Node v20.9.0 — `create-vite@9` fails on this version
-- If scaffolding anything new: use `npx create-vite@6`
+Running Node v20.9.0. `create-vite@9` fails. Use `npx create-vite@6` if scaffolding.
 
-### ⚠️ Timeline grid is full 24-hour (0–24), not 12am–12pm
+### ⚠️ TypeScript build vs type-check
+`npm run type-check` (`tsc --noEmit`) skips test files. `npm run build` (`tsc -b`) is stricter and catches more. Always run `npm run build` before declaring zero errors.
+
+### ⚠️ Native select pattern
+Use plain `<select>` with inline styles for simple dropdowns. For searchable dropdowns use controlled text input + dropdown list (as in `CreateJobModal` customer search).
+
+### ⚠️ Timeline grid is full 24-hour (0–24)
 `GRID_START_HOUR=0`, `GRID_END_HOUR=24`. Do not change.
-
-### ⚠️ CreateJobModal does NOT auto-create an Invoice
-`CreateJobModal` only dispatches `job/ADD`. Invoice auto-creation must be added in Step 13 when `AppProvider` gains invoice state.
 
 ---
 
 ## What Is NOT Done Yet
 
-| Step | What | Key files |
-|------|------|-----------|
-| 13 | Invoice Widget | `widgets/invoice-widget/ui/InvoiceWidget.tsx`, `pages/invoices/InvoiceListPage.tsx` (replace stub), `entities/invoice/model/slice.ts`, `features/invoice-payment/ui/PaymentActionBar.tsx` — also add invoice auto-creation to `CreateJobModal` and `AppProvider` |
-| 14 | CSV Export | `features/export/lib/csvExport.ts`, `features/export/ui/ExportModal.tsx` |
-| 15 | Polish + Tests | Unit tests for storage, statusHelpers, calcHelpers; 375px/390px QA; touch targets ≥ 44px; empty states; error boundaries |
+| Item | What | Notes |
+|------|------|-------|
+| E2E | Dashboard shows zeroes on fresh data | Clear localStorage, reload |
+| E2E | Create customer → open timeline → tap slot → create job | Full flow with modal + time pickers |
+| E2E | Job detail: status flows correctly via automatic transitions | No manual status button |
+| E2E | Create estimate → add line items → send → approve via public link | Verify portal + stable-ref fix |
+| E2E | Create invoice → mark paid → earnings update on dashboard | Confirm dialogs + job auto-COMPLETED |
+| E2E | Export invoice list as CSV with date range | Unchanged from Sprint 1 |
+| E2E | Customer search by phone and by name | Unchanged |
+| Cleanup | Delete `src/features/job-status/ui/StatusActionBar.tsx` | Orphaned file, no callers |
+| Sprint 3 | Push to GitHub | `git remote add origin git@github.com:vladwwe24/appliance-repair-frontend.git && git branch -M main && git push -u origin main` |
 
 ---
 
 ## Where to Start Next Session
 
-**Begin Step 13 — Invoice Widget.**
+1. Run `npm run build` — must be zero errors (currently clean ✓)
+2. Run `npm run preview` → open at `http://localhost:4173`
+3. Clear localStorage in DevTools (Application → Storage → Clear All) for a fresh seed
+4. Walk through the E2E checklist above
+5. Delete `src/features/job-status/ui/StatusActionBar.tsx`
+6. Push to GitHub
 
-0. Read `docs/plan.md` development rules and follow them
-1. Run `npm run type-check` — must be zero errors before starting
-2. Implement in this order:
-   1. `src/entities/invoice/model/slice.ts` — pure reducer (ADD/UPDATE, no REMOVE); `selectInvoiceByJob`, `selectInvoicesByStatus`
-   2. `src/app/providers/AppProvider.tsx` — add `invoices: Invoice[]` to `AppState`, wire `invoiceReducer`, add `useEffect` persistence for `STORAGE_KEYS.INVOICES`
-   3. `src/widgets/create-job-modal/ui/CreateJobModal.tsx` — dispatch `invoice/ADD` alongside `job/ADD`; pre-fill with one "Inspection" line item
-   4. `src/widgets/invoice-widget/ui/InvoiceWidget.tsx` — shows invoice for the job; `LineItemEditor` (editable until PAID); tax field; totals; Import from Estimate button
-   5. `src/features/invoice-payment/ui/PaymentActionBar.tsx` — Mark Paid / Mark Partial buttons; advances `InvoiceStatus`
-   6. `src/pages/invoices/InvoiceListPage.tsx` — replace stub; list all invoices with status filter; sorted by createdAt desc
-   7. Wire `InvoiceWidget` into the Invoice placeholder section of `JobDetailPage.tsx`
-   8. Overdue detection on app load: in `AppProvider` (or `main.tsx`), on mount check all invoices where status is UNPAID and createdAt is > 30 days ago, mark them OVERDUE
-3. Run `npm run type-check` — zero errors
-4. Verify in browser at 390px
+**Key things to verify in the browser:**
+- Open estimate modal → close → page fully clickable (the fix from this session)
+- Delete an estimate → no crash, page stays clickable
+- Open job creation modal from timeline → close → page fully clickable
+- Confirm dialogs (Mark Paid, Delete note, Delete estimate) open and close cleanly
+- Customer creation modal from `+ Customer` in CreateJobModal: both modals stack correctly
+- All modals appear above all content (portaled to `#modal-root`)
 
-**Key decisions for Step 13:**
-- One invoice per job (unlike estimates which allow many) — `selectInvoiceByJob` returns a single invoice
-- Invoice cannot be deleted (only cancelled)
-- Invoice is auto-created when job is created, with a single "Inspection" line item pre-filled
-- "Import from Estimate" copies line items from the most recently approved estimate
-- Invoice numbers format: `INV-YYYY-NNNN` via `generateInvoiceNumber(invoices.length)`
+---
+
+## Key Design Decisions Made
+
+### Modal system
+- **`ModalPortal`** (`src/shared/ui/ModalPortal.tsx`) — `createPortal` to `#modal-root` in `index.html`. This is the only place `createPortal` is called.
+- **`AppModal`** wraps in `ModalPortal`. Any component using `AppModal` automatically gets portal behavior.
+- **`ConfirmDialog`** wraps in `ModalPortal` directly (keeps its own compact implementation).
+- **`AppModal.title`** is `ReactNode` (not `string`) — allows custom elements like badge rows.
+
+### EstimateWidget stable ref pattern
+`stableEstimateRef` holds the last-opened estimate so `EstimateDetailModal` stays in the React tree (with `open={false}`) while Chakra animates closed. `closeModal()` only calls `setModalOpen(false)` — never clears `selectedId`. This is load-bearing; do not revert.
+
+### Data model
+- **One invoice per job** — `selectInvoiceByJob` returns a single `Invoice | undefined`. Auto-created at job creation with one "Inspection" line item ($75, Labor category).
+- **Multiple estimates per job** — `selectEstimatesByJob` returns `Estimate[]`. Each has a 6-digit zero-padded `estimateNumber` (e.g. `000001`).
+- **Pure reducers** — all reducers are side-effect free. localStorage persistence is in `AppProvider` `useEffect` hooks exclusively.
+- **`issue` is optional on Job** — removed from creation form. Notes cover freeform descriptions.
+- **`notes` on Job is `Note[]`** — each note: `{ id, body, createdAt, updatedAt }`.
+- **`JobStatus.CANCELLED`** — added to the const object this session (was in the original DB schema but missing from the TypeScript type).
+
+### UI/UX
+- **StatusActionBar removed** — job status advances automatically via business actions.
+- **Invoice widget default read-only** — Edit button (top-right) switches to edit mode.
+- **Searchable customer field** — `CreateJobModal` uses controlled text input + filtered dropdown.
+
+### Tax
+- Invoice tax: **taxable subtotal** only (`calcTaxableSubtotal` — items where `taxable !== false`).
+- Estimate tax: **full subtotal** (`calcSubtotal` — all items).
+
+### Routing
+- `src/app/router.tsx` (not `src/app/index.tsx`) — do not rename.
+- Customer creation is a modal at `/customers`. The `/customers/new` route still exists for editing via `/customers/:id/edit`.
+- Public estimate approval at `/approve/:token` renders without the app shell.

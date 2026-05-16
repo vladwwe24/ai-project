@@ -1,9 +1,10 @@
 import { Box, Flex, IconButton, Text } from '@chakra-ui/react'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { MdAdd } from 'react-icons/md'
 import { useAppDispatch, useAppState } from '@/app/providers/AppProvider'
 import { selectEstimatesByJob } from '@/entities/estimate/model/slice'
 import { EstimateStatus } from '@/entities/estimate/model/types'
+import type { Estimate } from '@/entities/estimate/model/types'
 import { EstimateStatusBadge } from '@/entities/estimate/ui/EstimateStatusBadge'
 import { getSettings } from '@/shared/config/settings'
 import { nanoid, formatDate, generateEstimateNumber } from '@/shared/lib/index'
@@ -21,10 +22,23 @@ export function EstimateWidget({ jobId }: Props) {
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [modalOpen, setModalOpen] = useState(false)
 
-  // Keep selectedId alive during close animation; fall back to null if estimate was deleted
-  const selectedEstimate = selectedId != null
+  // Stable ref: holds the last-opened estimate so EstimateDetailModal stays in
+  // the React tree (with open=false) while AppModal animates closed. Without
+  // this, both selectedId and modalOpen clearing in one batch would unmount
+  // the component before Chakra cleans up body overflow/pointer-events.
+  const stableEstimateRef = useRef<Estimate | null>(null)
+
+  const selectedEstimateFromState = selectedId != null
     ? (jobEstimates.find(e => e.id === selectedId) ?? null)
     : null
+
+  // Always keep ref current while the estimate exists in state
+  if (selectedEstimateFromState !== null) {
+    stableEstimateRef.current = selectedEstimateFromState
+  }
+
+  // Prefer live state; fall back to ref for the delete-while-open scenario
+  const displayEstimate = selectedEstimateFromState ?? stableEstimateRef.current
 
   function openEstimate(id: string) {
     setSelectedId(id)
@@ -32,6 +46,9 @@ export function EstimateWidget({ jobId }: Props) {
   }
 
   function closeModal() {
+    // Only set modalOpen=false — do NOT clear selectedId here.
+    // Clearing selectedId simultaneously would make displayEstimate null in the
+    // same render, unmounting the modal before Chakra's close animation runs.
     setModalOpen(false)
   }
 
@@ -92,10 +109,10 @@ export function EstimateWidget({ jobId }: Props) {
         </Box>
       ))}
 
-      {selectedEstimate != null && (
+      {displayEstimate != null && (
         <EstimateDetailModal
-          key={selectedEstimate.id}
-          estimate={selectedEstimate}
+          key={displayEstimate.id}
+          estimate={displayEstimate}
           open={modalOpen}
           onClose={closeModal}
         />

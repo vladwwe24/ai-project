@@ -1,13 +1,32 @@
-import { Box, Button, Flex, Text, Textarea } from '@chakra-ui/react'
+import { Box, Button, Flex, Input, Text } from '@chakra-ui/react'
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useAppDispatch, useAppState } from '@/app/providers/AppProvider'
 import { selectJobById } from '@/entities/job/model/slice'
 import { JobStatusBadge } from '@/entities/job/ui/JobStatusBadge'
-import { StatusActionBar } from '@/features/job-status/ui/StatusActionBar'
 import { formatDate, formatTime } from '@/shared/lib/index'
+import { AppModal } from '@/shared/ui/AppModal'
 import { EstimateWidget } from '@/widgets/estimate-widget/ui/EstimateWidget'
 import { InvoiceWidget } from '@/widgets/invoice-widget/ui/InvoiceWidget'
+import { NotesWidget } from '@/widgets/notes-widget/ui/NotesWidget'
+
+function isoToDateValue(iso: string): string {
+  const d = new Date(iso)
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
+function isoToTimeValue(iso: string): string {
+  const d = new Date(iso)
+  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
+}
+
+function addHours(timeStr: string, hours: number): string {
+  if (!timeStr) return ''
+  const [h, m] = timeStr.split(':').map(Number)
+  const total = h + hours
+  if (total >= 24) return '23:59'
+  return `${String(total).padStart(2, '0')}:${String(m).padStart(2, '0')}`
+}
 
 export function JobDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -18,8 +37,10 @@ export function JobDetailPage() {
   const job = id ? selectJobById(jobs, id) : undefined
   const customer = job ? customers.find(c => c.id === job.customerId) : undefined
 
-  const [notes, setNotes] = useState(job?.notes ?? '')
-  const [notesSaved, setNotesSaved] = useState(false)
+  const [rescheduleOpen, setRescheduleOpen] = useState(false)
+  const [rescheduleDate, setRescheduleDate] = useState('')
+  const [rescheduleStart, setRescheduleStart] = useState('')
+  const [rescheduleEnd, setRescheduleEnd] = useState('')
 
   if (!job) {
     return (
@@ -32,15 +53,30 @@ export function JobDetailPage() {
     )
   }
 
-  function saveNotes() {
-    if (!job) return
+  function openReschedule() {
+    setRescheduleDate(isoToDateValue(job!.scheduledAt))
+    const start = isoToTimeValue(job!.scheduledAt)
+    setRescheduleStart(start)
+    setRescheduleEnd(addHours(start, 2))
+    setRescheduleOpen(true)
+  }
+
+  function handleReschedule() {
+    if (!rescheduleDate || !rescheduleStart) return
+    const newIso = new Date(`${rescheduleDate}T${rescheduleStart}`).toISOString()
     dispatch({
       type: 'job/UPDATE',
-      payload: { ...job, notes: notes.trim() || undefined, updatedAt: new Date().toISOString() },
+      payload: { ...job!, scheduledAt: newIso, updatedAt: new Date().toISOString() },
     })
-    setNotesSaved(true)
-    setTimeout(() => setNotesSaved(false), 2000)
+    setRescheduleOpen(false)
   }
+
+  const rescheduleFooter = (
+    <>
+      <Button variant="ghost" onClick={() => setRescheduleOpen(false)}>Cancel</Button>
+      <Button colorPalette="blue" onClick={handleReschedule}>Save</Button>
+    </>
+  )
 
   return (
     <Box>
@@ -49,7 +85,12 @@ export function JobDetailPage() {
         <Button variant="ghost" size="sm" onClick={() => navigate('/jobs')}>
           ← Jobs
         </Button>
-        <JobStatusBadge status={job.status} />
+        <Flex align="center" gap={2}>
+          <Button size="sm" variant="outline" onClick={openReschedule}>
+            Reschedule
+          </Button>
+          <JobStatusBadge status={job.status} />
+        </Flex>
       </Flex>
 
       {/* Job info */}
@@ -69,14 +110,10 @@ export function JobDetailPage() {
             {customer.name}
           </Text>
         )}
-        <Text fontSize="sm" color="fg.muted" mb={1}>{job.issue}</Text>
         <Text fontSize="xs" color="fg.subtle">
           {formatDate(job.scheduledAt)} at {formatTime(job.scheduledAt)}
         </Text>
       </Box>
-
-      {/* Status actions */}
-      <StatusActionBar job={job} />
 
       {/* Invoice section */}
       <Box mx={4} mb={4}>
@@ -89,24 +126,46 @@ export function JobDetailPage() {
       </Box>
 
       {/* Notes */}
-      <Box mx={4} mb={4} borderWidth="1px" borderRadius="md" p={3}>
-        <Text fontWeight="semibold" mb={2}>Notes</Text>
-        <Textarea
-          value={notes}
-          onChange={e => { setNotes(e.target.value); setNotesSaved(false) }}
-          placeholder="Add job notes…"
-          rows={4}
-          mb={2}
-        />
-        <Flex align="center" gap={3}>
-          <Button size="sm" colorPalette="blue" onClick={saveNotes}>
-            Save Notes
-          </Button>
-          {notesSaved && (
-            <Text fontSize="sm" color="green.600">Saved!</Text>
-          )}
-        </Flex>
+      <Box mx={4} mb={4}>
+        <NotesWidget jobId={job.id} />
       </Box>
+
+      {/* Reschedule modal */}
+      <AppModal
+        open={rescheduleOpen}
+        onClose={() => setRescheduleOpen(false)}
+        title="Reschedule Job"
+        footer={rescheduleFooter}
+      >
+        <Flex direction="column" gap={3}>
+          <Box>
+            <Text fontSize="sm" fontWeight="medium" mb={1}>Date</Text>
+            <Input
+              type="date"
+              value={rescheduleDate}
+              onChange={e => setRescheduleDate(e.target.value)}
+            />
+          </Box>
+          <Flex gap={3}>
+            <Box flex={1}>
+              <Text fontSize="sm" fontWeight="medium" mb={1}>Start Time</Text>
+              <Input
+                type="time"
+                value={rescheduleStart}
+                onChange={e => setRescheduleStart(e.target.value)}
+              />
+            </Box>
+            <Box flex={1}>
+              <Text fontSize="sm" fontWeight="medium" mb={1}>End Time</Text>
+              <Input
+                type="time"
+                value={rescheduleEnd}
+                onChange={e => setRescheduleEnd(e.target.value)}
+              />
+            </Box>
+          </Flex>
+        </Flex>
+      </AppModal>
     </Box>
   )
 }

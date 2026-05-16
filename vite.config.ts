@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite'
+import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
 import { fileURLToPath, URL } from 'node:url'
 
@@ -13,4 +13,7 @@ export default defineConfig({
     environment: 'happy-dom',
     setupFiles: ['./src/test/setup.ts'],
   },
+  server: {
+    allowedHosts: ['conciliable-kimbery-cytophagous.ngrok-free.dev']
+  }
 })

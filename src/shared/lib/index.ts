@@ -19,7 +19,5 @@ export function generateInvoiceNumber(totalInvoiceCount: number): string {
 }
 
 export function generateEstimateNumber(totalEstimateCount: number): string {
-  const year = new Date().getFullYear()
-  const seq = String(totalEstimateCount + 1).padStart(4, '0')
-  return `EST-${year}-${seq}`
+  return String(totalEstimateCount + 1).padStart(6, '0')
 }

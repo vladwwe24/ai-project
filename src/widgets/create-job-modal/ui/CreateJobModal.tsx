@@ -1,33 +1,49 @@
 import {
+  Box,
   Button,
-  DialogBackdrop,
-  DialogBody,
-  DialogCloseTrigger,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogPositioner,
-  DialogRoot,
-  DialogTitle,
   FieldErrorText,
   FieldLabel,
   FieldRoot,
   Flex,
   Input,
+  Text,
 } from '@chakra-ui/react'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAppDispatch, useAppState } from '@/app/providers/AppProvider'
 import { JobStatus } from '@/entities/job/model/types'
 import { InvoiceStatus } from '@/entities/invoice/model/types'
+import { CreateCustomerModal } from '@/features/create-customer/ui/CreateCustomerModal'
+import { AppModal } from '@/shared/ui/AppModal'
 import { getSettings } from '@/shared/config/settings'
 import { nanoid, generateInvoiceNumber } from '@/shared/lib/index'
-import { toDatetimeLocalValue } from '@/widgets/timeline-grid/lib/timeUtils'
 
 interface Props {
   open: boolean
   initialIso: string
   onClose: () => void
+}
+
+function isoToTimeValue(iso: string): string {
+  if (!iso) return ''
+  const d = new Date(iso)
+  if (isNaN(d.getTime())) return ''
+  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
+}
+
+function isoToDateValue(iso: string): string {
+  if (!iso) return ''
+  const d = new Date(iso)
+  if (isNaN(d.getTime())) return ''
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
+function addHours(timeStr: string, hours: number): string {
+  if (!timeStr) return ''
+  const [h, m] = timeStr.split(':').map(Number)
+  const total = h + hours
+  if (total >= 24) return '23:59'
+  return `${String(total).padStart(2, '0')}:${String(m).padStart(2, '0')}`
 }
 
 export function CreateJobModal({ open, initialIso, onClose }: Props) {
@@ -36,30 +52,57 @@ export function CreateJobModal({ open, initialIso, onClose }: Props) {
   const navigate = useNavigate()
 
   const [customerId, setCustomerId] = useState('')
+  const [customerQuery, setCustomerQuery] = useState('')
+  const [showCustomerList, setShowCustomerList] = useState(false)
   const [applianceType, setApplianceType] = useState('')
   const [brand, setBrand] = useState('')
   const [model, setModel] = useState('')
-  const [issue, setIssue] = useState('')
-  const [scheduledAt, setScheduledAt] = useState('')
-  const [errors, setErrors] = useState<{
-    customerId?: string
-    applianceType?: string
-    issue?: string
-  }>({})
+  const [scheduledDate, setScheduledDate] = useState('')
+  const [startTime, setStartTime] = useState('')
+  const [endTime, setEndTime] = useState('')
+  const [createCustomerOpen, setCreateCustomerOpen] = useState(false)
+  const [errors, setErrors] = useState<{ customerId?: string; applianceType?: string }>({})
+  const customerInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     if (open && initialIso) {
-      setScheduledAt(toDatetimeLocalValue(initialIso))
+      setScheduledDate(isoToDateValue(initialIso))
+      const start = isoToTimeValue(initialIso)
+      setStartTime(start)
+      setEndTime(addHours(start, 2))
     }
   }, [open, initialIso])
 
+  const filteredCustomers = customerQuery.trim()
+    ? customers.filter(c => c.name.toLowerCase().includes(customerQuery.toLowerCase().trim()))
+    : customers
+
+  function selectCustomer(id: string, name: string) {
+    setCustomerId(id)
+    setCustomerQuery(name)
+    setShowCustomerList(false)
+  }
+
+  function handleCustomerCreated(id: string) {
+    const created = customers.find(c => c.id === id)
+    if (created) {
+      selectCustomer(id, created.name)
+    } else {
+      setCustomerId(id)
+    }
+    setCreateCustomerOpen(false)
+  }
+
   function reset() {
     setCustomerId('')
+    setCustomerQuery('')
+    setShowCustomerList(false)
     setApplianceType('')
     setBrand('')
     setModel('')
-    setIssue('')
-    setScheduledAt('')
+    setScheduledDate('')
+    setStartTime('')
+    setEndTime('')
     setErrors({})
   }
 
@@ -72,16 +115,21 @@ export function CreateJobModal({ open, initialIso, onClose }: Props) {
     const errs: typeof errors = {}
     if (!customerId) errs.customerId = 'Customer is required'
     if (!applianceType.trim()) errs.applianceType = 'Appliance type is required'
-    if (!issue.trim()) errs.issue = 'Issue description is required'
     setErrors(errs)
     return Object.keys(errs).length === 0
+  }
+
+  function buildScheduledAt(): string {
+    if (scheduledDate && startTime) {
+      return new Date(`${scheduledDate}T${startTime}`).toISOString()
+    }
+    return new Date().toISOString()
   }
 
   function handleCreate() {
     if (!validate()) return
     const jobId = nanoid()
     const now = new Date().toISOString()
-    const iso = scheduledAt ? new Date(scheduledAt).toISOString() : now
     dispatch({
       type: 'job/ADD',
       payload: {
@@ -90,9 +138,8 @@ export function CreateJobModal({ open, initialIso, onClose }: Props) {
         applianceType: applianceType.trim(),
         brand: brand.trim() || undefined,
         model: model.trim() || undefined,
-        issue: issue.trim(),
         status: JobStatus.SCHEDULED,
-        scheduledAt: iso,
+        scheduledAt: buildScheduledAt(),
         createdAt: now,
         updatedAt: now,
       },
@@ -114,93 +161,145 @@ export function CreateJobModal({ open, initialIso, onClose }: Props) {
     navigate(`/jobs/${jobId}`)
   }
 
+  const footer = (
+    <>
+      <Button variant="ghost" onClick={handleClose}>Cancel</Button>
+      <Button colorPalette="blue" onClick={handleCreate}>Create Job</Button>
+    </>
+  )
+
   return (
-    <DialogRoot open={open} onOpenChange={e => { if (!e.open) handleClose() }}>
-      <DialogBackdrop />
-      <DialogPositioner>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>New Job</DialogTitle>
-          </DialogHeader>
-          <DialogBody>
-            <Flex direction="column" gap={3}>
-              <FieldRoot invalid={!!errors.customerId} required>
-                <FieldLabel>Customer</FieldLabel>
-                <select
-                  value={customerId}
-                  onChange={e => setCustomerId(e.target.value)}
-                  style={{
-                    width: '100%',
-                    padding: '8px 12px',
-                    border: `1px solid ${errors.customerId ? '#E53E3E' : 'var(--chakra-colors-border)'}`,
-                    borderRadius: '6px',
-                    fontSize: '14px',
-                    background: 'white',
+    <>
+      <AppModal open={open} onClose={handleClose} title="New Job" size="md" footer={footer}>
+        <Flex direction="column" gap={3}>
+
+          {/* Customer — searchable */}
+          <FieldRoot invalid={!!errors.customerId} required>
+            <FieldLabel>Customer</FieldLabel>
+            <Flex gap={2}>
+              <Box flex={1} position="relative">
+                <Input
+                  ref={customerInputRef}
+                  placeholder="Search customer…"
+                  value={customerQuery}
+                  onChange={e => {
+                    setCustomerQuery(e.target.value)
+                    setCustomerId('')
+                    setShowCustomerList(true)
                   }}
-                >
-                  <option value="">Select customer…</option>
-                  {customers.map(c => (
-                    <option key={c.id} value={c.id}>{c.name}</option>
-                  ))}
-                </select>
-                <FieldErrorText>{errors.customerId}</FieldErrorText>
-              </FieldRoot>
-
-              <FieldRoot invalid={!!errors.applianceType} required>
-                <FieldLabel>Appliance Type</FieldLabel>
-                <Input
-                  placeholder="e.g. Refrigerator"
-                  value={applianceType}
-                  onChange={e => setApplianceType(e.target.value)}
+                  onFocus={() => setShowCustomerList(true)}
+                  onBlur={() => setTimeout(() => setShowCustomerList(false), 150)}
+                  style={errors.customerId ? { borderColor: '#E53E3E' } : undefined}
+                  autoComplete="off"
                 />
-                <FieldErrorText>{errors.applianceType}</FieldErrorText>
-              </FieldRoot>
-
-              <FieldRoot>
-                <FieldLabel>Brand</FieldLabel>
-                <Input
-                  placeholder="e.g. Samsung"
-                  value={brand}
-                  onChange={e => setBrand(e.target.value)}
-                />
-              </FieldRoot>
-
-              <FieldRoot>
-                <FieldLabel>Model</FieldLabel>
-                <Input
-                  placeholder="e.g. RS28A500ASR"
-                  value={model}
-                  onChange={e => setModel(e.target.value)}
-                />
-              </FieldRoot>
-
-              <FieldRoot invalid={!!errors.issue} required>
-                <FieldLabel>Issue</FieldLabel>
-                <Input
-                  placeholder="Describe the problem…"
-                  value={issue}
-                  onChange={e => setIssue(e.target.value)}
-                />
-                <FieldErrorText>{errors.issue}</FieldErrorText>
-              </FieldRoot>
-
-              <FieldRoot>
-                <FieldLabel>Scheduled Time</FieldLabel>
-                <Input
-                  type="datetime-local"
-                  value={scheduledAt}
-                  onChange={e => setScheduledAt(e.target.value)}
-                />
-              </FieldRoot>
+                {showCustomerList && filteredCustomers.length > 0 && (
+                  <Box
+                    position="absolute"
+                    top="100%"
+                    left={0}
+                    right={0}
+                    zIndex={20}
+                    bg="white"
+                    borderWidth="1px"
+                    borderColor="border.subtle"
+                    borderRadius="md"
+                    boxShadow="md"
+                    mt={1}
+                    maxH="160px"
+                    overflowY="auto"
+                  >
+                    {filteredCustomers.map(c => (
+                      <Box
+                        key={c.id}
+                        px={3}
+                        py={2}
+                        cursor="pointer"
+                        _hover={{ bg: 'bg.subtle' }}
+                        onMouseDown={() => selectCustomer(c.id, c.name)}
+                      >
+                        <Text fontSize="sm">{c.name}</Text>
+                        <Text fontSize="xs" color="fg.muted">{c.phone}</Text>
+                      </Box>
+                    ))}
+                  </Box>
+                )}
+              </Box>
+              <Button
+                size="sm"
+                variant="outline"
+                flexShrink={0}
+                onClick={() => setCreateCustomerOpen(true)}
+              >
+                + Customer
+              </Button>
             </Flex>
-          </DialogBody>
-          <DialogFooter gap={2}>
-            <Button variant="ghost" onClick={handleClose}>Cancel</Button>
-            <Button colorPalette="blue" onClick={handleCreate}>Create Job</Button>
-          </DialogFooter>
-          <DialogCloseTrigger />
-        </DialogContent>
-      </DialogPositioner>
-    </DialogRoot>
+            <FieldErrorText>{errors.customerId}</FieldErrorText>
+          </FieldRoot>
+
+          <FieldRoot invalid={!!errors.applianceType} required>
+            <FieldLabel>Appliance Type</FieldLabel>
+            <Input
+              placeholder="e.g. Refrigerator"
+              value={applianceType}
+              onChange={e => setApplianceType(e.target.value)}
+            />
+            <FieldErrorText>{errors.applianceType}</FieldErrorText>
+          </FieldRoot>
+
+          <FieldRoot>
+            <FieldLabel>Brand</FieldLabel>
+            <Input
+              placeholder="e.g. Samsung"
+              value={brand}
+              onChange={e => setBrand(e.target.value)}
+            />
+          </FieldRoot>
+
+          <FieldRoot>
+            <FieldLabel>Model</FieldLabel>
+            <Input
+              placeholder="e.g. RS28A500ASR"
+              value={model}
+              onChange={e => setModel(e.target.value)}
+            />
+          </FieldRoot>
+
+          <FieldRoot>
+            <FieldLabel>Date</FieldLabel>
+            <Input
+              type="date"
+              value={scheduledDate}
+              onChange={e => setScheduledDate(e.target.value)}
+            />
+          </FieldRoot>
+
+          <Flex gap={3}>
+            <FieldRoot flex={1}>
+              <FieldLabel>Start Time</FieldLabel>
+              <Input
+                type="time"
+                value={startTime}
+                onChange={e => setStartTime(e.target.value)}
+              />
+            </FieldRoot>
+            <FieldRoot flex={1}>
+              <FieldLabel>End Time</FieldLabel>
+              <Input
+                type="time"
+                value={endTime}
+                onChange={e => setEndTime(e.target.value)}
+              />
+            </FieldRoot>
+          </Flex>
+
+        </Flex>
+      </AppModal>
+
+      <CreateCustomerModal
+        open={createCustomerOpen}
+        onClose={() => setCreateCustomerOpen(false)}
+        onCreated={handleCustomerCreated}
+      />
+    </>
   )
 }

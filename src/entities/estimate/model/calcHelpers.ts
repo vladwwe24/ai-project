@@ -4,6 +4,12 @@ export function calcSubtotal(lineItems: LineItem[]): number {
   return lineItems.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0)
 }
 
+export function calcTaxableSubtotal(lineItems: LineItem[]): number {
+  return lineItems
+    .filter(item => item.taxable !== false)
+    .reduce((sum, item) => sum + item.quantity * item.unitPrice, 0)
+}
+
 export function calcTax(subtotal: number, taxRate: number): number {
   return subtotal * (taxRate / 100)
 }

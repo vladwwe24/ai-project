@@ -10,6 +10,7 @@ import {
   DialogRoot,
   DialogTitle,
 } from '@chakra-ui/react'
+import { ModalPortal } from './ModalPortal'
 
 interface ConfirmDialogProps {
   open: boolean
@@ -29,23 +30,25 @@ export function ConfirmDialog({
   confirmLabel = 'Confirm',
 }: ConfirmDialogProps) {
   return (
-    <DialogRoot open={open} onOpenChange={(e) => { if (!e.open) onClose() }}>
-      <DialogBackdrop />
-      <DialogPositioner>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{title}</DialogTitle>
-          </DialogHeader>
-          <DialogBody>{message}</DialogBody>
-          <DialogFooter gap={2}>
-            <Button variant="ghost" onClick={onClose}>Cancel</Button>
-            <Button colorPalette="red" onClick={() => { onConfirm(); onClose() }}>
-              {confirmLabel}
-            </Button>
-          </DialogFooter>
-          <DialogCloseTrigger />
-        </DialogContent>
-      </DialogPositioner>
-    </DialogRoot>
+    <ModalPortal>
+      <DialogRoot open={open} onOpenChange={(e) => { if (!e.open) onClose() }} lazyMount unmountOnExit>
+        <DialogBackdrop />
+        <DialogPositioner>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>{title}</DialogTitle>
+            </DialogHeader>
+            <DialogBody>{message}</DialogBody>
+            <DialogFooter gap={2}>
+              <Button variant="ghost" onClick={onClose}>Cancel</Button>
+              <Button colorPalette="red" onClick={() => { onConfirm(); onClose() }}>
+                {confirmLabel}
+              </Button>
+            </DialogFooter>
+            <DialogCloseTrigger />
+          </DialogContent>
+        </DialogPositioner>
+      </DialogRoot>
+    </ModalPortal>
   )
 }

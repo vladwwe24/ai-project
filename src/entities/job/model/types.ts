@@ -8,9 +8,17 @@ export const JobStatus = {
   INVOICED: 'INVOICED',
   PAID: 'PAID',
   COMPLETED: 'COMPLETED',
+  CANCELLED: 'CANCELLED',
 } as const
 
 export type JobStatus = typeof JobStatus[keyof typeof JobStatus]
+
+export interface Note {
+  id: string
+  body: string
+  createdAt: string
+  updatedAt: string
+}
 
 export interface Job {
   id: string
@@ -18,12 +26,12 @@ export interface Job {
   applianceType: string
   brand?: string
   model?: string
-  issue: string
+  issue?: string
   status: JobStatus
   scheduledAt: string
   completedAt?: string
   signature?: string
-  notes?: string
+  notes?: Note[]
   createdAt: string
   updatedAt: string
 }

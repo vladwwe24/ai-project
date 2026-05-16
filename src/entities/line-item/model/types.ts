@@ -3,4 +3,6 @@ export interface LineItem {
   description: string
   quantity: number
   unitPrice: number
+  taxable?: boolean          // default true when undefined
+  category?: 'labor' | 'material'  // invoice-only; default 'labor' when undefined
 }

@@ -33,7 +33,7 @@ export function JobListPage() {
         const customer = customers.find(c => c.id === j.customerId)
         return (
           j.applianceType.toLowerCase().includes(q) ||
-          j.issue.toLowerCase().includes(q) ||
+          (j.issue?.toLowerCase().includes(q) ?? false) ||
           (j.brand?.toLowerCase().includes(q) ?? false) ||
           (customer?.name.toLowerCase().includes(q) ?? false)
         )

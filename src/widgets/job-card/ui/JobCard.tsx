@@ -28,7 +28,7 @@ export function JobCard({ job, customerName, onClick }: Props) {
       {customerName && (
         <Text fontSize="sm" color="fg.muted">{customerName}</Text>
       )}
-      <Text fontSize="sm" color="fg.muted" noOfLines={1}>{job.issue}</Text>
+      <Text fontSize="sm" color="fg.muted" style={{ overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical' }}>{job.issue}</Text>
       <Text fontSize="xs" color="fg.subtle" mt={1}>
         {formatDate(job.scheduledAt)} at {formatTime(job.scheduledAt)}
       </Text>

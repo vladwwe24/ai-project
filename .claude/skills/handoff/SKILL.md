@@ -6,7 +6,6 @@ Regenerate `docs/handoff.md` to accurately reflect the current state of the Appl
 
 Read these files and collect information:
 
-1. **`docs/checklist.md`** — identify every step marked `[x]` (done) and every step marked `[ ]` (pending). Find the first `[ ]` step — that is the next step to work on.
 2. **`src/` directory tree** — list all files that currently exist under `src/` (use file listing or glob). This is the source of truth for what has actually been built.
 3. **`docs/handoff.md`** — read it for section structure and any locked content (Tech Stack table, Key Design Decisions) that should be preserved verbatim.
 4. **`package.json`** — confirm installed dependencies.

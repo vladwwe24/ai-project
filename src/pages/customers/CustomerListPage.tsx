@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAppState } from '@/app/providers/AppProvider'
 import { CustomerCard } from '@/entities/customer/ui/CustomerCard'
+import { CreateCustomerModal } from '@/features/create-customer/ui/CreateCustomerModal'
 import { EmptyState } from '@/shared/ui/EmptyState'
 import { PageHeader } from '@/shared/ui/PageHeader'
 
@@ -10,6 +11,7 @@ export function CustomerListPage() {
   const { customers } = useAppState()
   const navigate = useNavigate()
   const [query, setQuery] = useState('')
+  const [modalOpen, setModalOpen] = useState(false)
 
   const filtered = useMemo(() => {
     const q = query.toLowerCase().trim()
@@ -24,7 +26,7 @@ export function CustomerListPage() {
       <PageHeader
         title="Customers"
         action={
-          <Button size="sm" colorPalette="blue" onClick={() => navigate('/customers/new')}>
+          <Button size="sm" colorPalette="blue" onClick={() => setModalOpen(true)}>
             + New
           </Button>
         }
@@ -53,6 +55,11 @@ export function CustomerListPage() {
           </Box>
         )}
       </Box>
+
+      <CreateCustomerModal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+      />
     </Box>
   )
 }

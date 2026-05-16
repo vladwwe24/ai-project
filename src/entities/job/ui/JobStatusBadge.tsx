@@ -11,6 +11,7 @@ const colorMap: Record<JobStatus, string> = {
   INVOICED: 'orange',
   PAID: 'green',
   COMPLETED: 'gray',
+  CANCELLED: 'red',
 }
 
 const labelMap: Record<JobStatus, string> = {
@@ -23,6 +24,7 @@ const labelMap: Record<JobStatus, string> = {
   INVOICED: 'Invoiced',
   PAID: 'Paid',
   COMPLETED: 'Completed',
+  CANCELLED: 'Cancelled',
 }
 
 interface Props {
