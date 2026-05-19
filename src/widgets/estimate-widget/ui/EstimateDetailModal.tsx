@@ -1,14 +1,15 @@
 import { Box, Button, Flex, Input, Text } from '@chakra-ui/react'
 import { useEffect, useState } from 'react'
-import { useAppDispatch } from '@/app/providers/AppProvider'
+import { useAppDispatch, useAppState } from '@/app/providers/AppProvider'
 import type { Estimate } from '@/entities/estimate/model/types'
 import { EstimateStatus } from '@/entities/estimate/model/types'
+import { selectInvoiceByJob } from '@/entities/invoice/model/slice'
 import { EstimateStatusBadge } from '@/entities/estimate/ui/EstimateStatusBadge'
 import { calcSubtotal, calcTax, calcTotal } from '@/entities/estimate/model/calcHelpers'
 import type { LineItem } from '@/entities/line-item/model/types'
 import { ConfirmDialog } from '@/shared/ui/ConfirmDialog'
 import { AppModal } from '@/shared/ui/AppModal'
-import { formatCurrency, formatDate } from '@/shared/lib/index'
+import { formatCurrency, formatDate, nanoid } from '@/shared/lib/index'
 import { LineItemEditor } from '@/widgets/line-item-editor/ui/LineItemEditor'
 import { SendEstimateButton } from '@/features/estimate-send/ui/SendEstimateButton'
 
@@ -20,10 +21,14 @@ interface Props {
 
 export function EstimateDetailModal({ estimate, open, onClose }: Props) {
   const dispatch = useAppDispatch()
+  const { invoices } = useAppState()
   const [lineItems, setLineItems] = useState<LineItem[]>(estimate.lineItems)
   const [taxRate, setTaxRate] = useState(estimate.taxRate)
   const [dirty, setDirty] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
+  const [confirmApply, setConfirmApply] = useState(false)
+
+  const invoice = selectInvoiceByJob(invoices, estimate.jobId)
 
   useEffect(() => {
     setLineItems(estimate.lineItems)
@@ -49,6 +54,19 @@ export function EstimateDetailModal({ estimate, open, onClose }: Props) {
     onClose()
   }
 
+  function handleApplyToInvoice() {
+    if (!invoice) return
+    dispatch({
+      type: 'invoice/UPDATE',
+      payload: {
+        ...invoice,
+        lineItems: lineItems.map(item => ({ ...item, id: nanoid() })),
+        updatedAt: new Date().toISOString(),
+      },
+    })
+    setConfirmApply(false)
+  }
+
   function handleLineItemsChange(items: LineItem[]) {
     setLineItems(items)
     setDirty(true)
@@ -70,25 +88,34 @@ export function EstimateDetailModal({ estimate, open, onClose }: Props) {
     </Flex>
   )
 
-  const footer = isEditable ? (
+  const footer = (
     <Flex w="full" gap={2} flexWrap="wrap">
-      <Button
-        size="sm"
-        variant="ghost"
-        colorPalette="red"
-        mr="auto"
-        onClick={() => setConfirmDelete(true)}
-      >
-        Delete
-      </Button>
-      {dirty && (
+      {isEditable && (
+        <Button
+          size="sm"
+          variant="ghost"
+          colorPalette="red"
+          mr="auto"
+          onClick={() => setConfirmDelete(true)}
+        >
+          Delete
+        </Button>
+      )}
+      {invoice && lineItems.length > 0 && (
+        <Button size="sm" variant="outline" colorPalette="green" onClick={() => setConfirmApply(true)}>
+          Apply to Invoice
+        </Button>
+      )}
+      {isEditable && dirty && (
         <Button size="sm" variant="outline" onClick={handleSave}>
           Save
         </Button>
       )}
-      <SendEstimateButton estimate={estimate} lineItems={lineItems} taxRate={taxRate} />
+      {isEditable && (
+        <SendEstimateButton estimate={estimate} lineItems={lineItems} taxRate={taxRate} />
+      )}
     </Flex>
-  ) : undefined
+  )
 
   return (
     <>
@@ -179,6 +206,15 @@ export function EstimateDetailModal({ estimate, open, onClose }: Props) {
         title="Delete Estimate"
         message={`Delete ${estimate.estimateNumber}? This cannot be undone.`}
         confirmLabel="Delete"
+      />
+
+      <ConfirmDialog
+        open={confirmApply}
+        onClose={() => setConfirmApply(false)}
+        onConfirm={handleApplyToInvoice}
+        title="Apply to Invoice"
+        message="This will replace all current invoice line items with this estimate's items. Continue?"
+        confirmLabel="Apply"
       />
     </>
   )

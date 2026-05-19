@@ -16,7 +16,7 @@ import { InvoiceStatus } from '@/entities/invoice/model/types'
 import { CreateCustomerModal } from '@/features/create-customer/ui/CreateCustomerModal'
 import { AppModal } from '@/shared/ui/AppModal'
 import { getSettings } from '@/shared/config/settings'
-import { nanoid, generateInvoiceNumber } from '@/shared/lib/index'
+import { nanoid, generateInvoiceNumber, generateJobNumber } from '@/shared/lib/index'
 
 interface Props {
   open: boolean
@@ -47,7 +47,7 @@ function addHours(timeStr: string, hours: number): string {
 }
 
 export function CreateJobModal({ open, initialIso, onClose }: Props) {
-  const { customers, invoices } = useAppState()
+  const { customers, invoices, jobs } = useAppState()
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
 
@@ -126,10 +126,18 @@ export function CreateJobModal({ open, initialIso, onClose }: Props) {
     return new Date().toISOString()
   }
 
+  function buildScheduledEndAt(): string | undefined {
+    if (scheduledDate && endTime) {
+      return new Date(`${scheduledDate}T${endTime}`).toISOString()
+    }
+    return undefined
+  }
+
   function handleCreate() {
     if (!validate()) return
     const jobId = nanoid()
     const now = new Date().toISOString()
+    const customerName = customers.find(c => c.id === customerId)?.name ?? ''
     dispatch({
       type: 'job/ADD',
       payload: {
@@ -140,6 +148,9 @@ export function CreateJobModal({ open, initialIso, onClose }: Props) {
         model: model.trim() || undefined,
         status: JobStatus.SCHEDULED,
         scheduledAt: buildScheduledAt(),
+        scheduledEndAt: buildScheduledEndAt(),
+        name: `Job for ${customerName}`,
+        jobNumber: generateJobNumber(jobs.length),
         createdAt: now,
         updatedAt: now,
       },

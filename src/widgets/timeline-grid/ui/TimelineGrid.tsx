@@ -11,6 +11,7 @@ import {
   TOTAL_HEIGHT,
   hourLabel,
   isoToGridTop,
+  isoToBlockHeight,
   snapToHour,
   slotToIso,
 } from '../lib/timeUtils'
@@ -22,6 +23,68 @@ interface Props {
   customers: Customer[]
   selectedDate: Date
   onSlotTap: (iso: string) => void
+}
+
+interface JobLayout {
+  job: Job
+  top: number
+  height: number
+  columnIndex: number
+  totalColumns: number
+}
+
+function getJobEndMs(job: Job): number {
+  if (job.scheduledEndAt) return new Date(job.scheduledEndAt).getTime()
+  return new Date(job.scheduledAt).getTime() + 3_600_000 // default 1 hour
+}
+
+function computeLayouts(jobs: Job[]): JobLayout[] {
+  const visible = jobs
+    .map(job => ({ job, top: isoToGridTop(job.scheduledAt) }))
+    .filter((x): x is { job: Job; top: number } => x.top !== null)
+
+  if (visible.length === 0) return []
+
+  // Sort by start time ascending
+  visible.sort((a, b) =>
+    new Date(a.job.scheduledAt).getTime() - new Date(b.job.scheduledAt).getTime()
+  )
+
+  // Greedy column assignment: columns array holds the end-ms of the last job in each column
+  const columnEnds: number[] = []
+  const assigned: Array<{ job: Job; top: number; columnIndex: number }> = []
+
+  for (const { job, top } of visible) {
+    const startMs = new Date(job.scheduledAt).getTime()
+    const endMs = getJobEndMs(job)
+    let col = columnEnds.findIndex(endTime => endTime <= startMs)
+    if (col === -1) col = columnEnds.length
+    columnEnds[col] = endMs
+    assigned.push({ job, top, columnIndex: col })
+  }
+
+  // Determine totalColumns for each job: max column index among all jobs that overlap with it, + 1
+  const result: JobLayout[] = assigned.map(({ job, top, columnIndex }) => {
+    const startMs = new Date(job.scheduledAt).getTime()
+    const endMs = getJobEndMs(job)
+    let maxCol = columnIndex
+    for (const other of assigned) {
+      const otherStart = new Date(other.job.scheduledAt).getTime()
+      const otherEnd = getJobEndMs(other.job)
+      if (otherStart < endMs && otherEnd > startMs) {
+        if (other.columnIndex > maxCol) maxCol = other.columnIndex
+      }
+    }
+    return {
+      job,
+      top,
+      height: isoToBlockHeight(job.scheduledAt, job.scheduledEndAt),
+      columnIndex,
+      totalColumns: maxCol + 1,
+    }
+  })
+
+  return result
 }
 
 export function TimelineGrid({ jobs, customers, selectedDate, onSlotTap }: Props) {
@@ -37,6 +100,8 @@ export function TimelineGrid({ jobs, customers, selectedDate, onSlotTap }: Props
     const { hour, minute } = snapToHour(y)
     onSlotTap(slotToIso(selectedDate, hour, minute))
   }
+
+  const layouts = computeLayouts(jobs)
 
   return (
     <Box
@@ -75,9 +140,7 @@ export function TimelineGrid({ jobs, customers, selectedDate, onSlotTap }: Props
       ))}
 
       {/* Job blocks */}
-      {jobs.map(job => {
-        const top = isoToGridTop(job.scheduledAt)
-        if (top === null) return null
+      {layouts.map(({ job, top, height, columnIndex, totalColumns }) => {
         const customer = customers.find(c => c.id === job.customerId)
         return (
           <JobBlock
@@ -85,6 +148,9 @@ export function TimelineGrid({ jobs, customers, selectedDate, onSlotTap }: Props
             job={job}
             customerName={customer?.name}
             top={top}
+            height={height}
+            columnIndex={columnIndex}
+            totalColumns={totalColumns}
             onClick={() => navigate(`/jobs/${job.id}`)}
           />
         )

@@ -2,7 +2,7 @@ export const GRID_START_HOUR = 0   // 12 AM (midnight)
 export const GRID_END_HOUR = 24    // 12 AM (next day)
 export const HOUR_HEIGHT = 80      // px per hour
 export const TOTAL_HEIGHT = (GRID_END_HOUR - GRID_START_HOUR) * HOUR_HEIGHT // 1920px
-export const BLOCK_HEIGHT = HOUR_HEIGHT  // px per job block — 1 hour tall
+export const BLOCK_HEIGHT = HOUR_HEIGHT  // kept for backward compat
 
 export function hourLabel(hour: number): string {
   if (hour === 0) return '12 AM'
@@ -42,6 +42,16 @@ export function toDateKey(date: Date): string {
   const m = String(date.getMonth() + 1).padStart(2, '0')
   const d = String(date.getDate()).padStart(2, '0')
   return `${y}-${m}-${d}`
+}
+
+// Returns pixel height for a job block based on its duration
+export function isoToBlockHeight(startIso: string, endIso?: string): number {
+  if (!endIso) return HOUR_HEIGHT
+  const startMs = new Date(startIso).getTime()
+  const endMs = new Date(endIso).getTime()
+  const durationHours = (endMs - startMs) / 3_600_000
+  if (durationHours <= 0) return HOUR_HEIGHT
+  return Math.max(durationHours * HOUR_HEIGHT, 24)
 }
 
 // Returns value suitable for <input type="datetime-local">

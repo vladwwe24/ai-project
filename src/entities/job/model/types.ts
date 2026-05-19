@@ -20,6 +20,12 @@ export interface Note {
   updatedAt: string
 }
 
+export interface Attachment {
+  id: string
+  dataUrl: string
+  createdAt: string
+}
+
 export interface Job {
   id: string
   customerId: string
@@ -29,9 +35,13 @@ export interface Job {
   issue?: string
   status: JobStatus
   scheduledAt: string
+  scheduledEndAt?: string
+  name?: string
+  jobNumber?: string
   completedAt?: string
   signature?: string
   notes?: Note[]
+  attachments?: Attachment[]
   createdAt: string
   updatedAt: string
 }

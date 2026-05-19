@@ -21,3 +21,7 @@ export function generateInvoiceNumber(totalInvoiceCount: number): string {
 export function generateEstimateNumber(totalEstimateCount: number): string {
   return String(totalEstimateCount + 1).padStart(6, '0')
 }
+
+export function generateJobNumber(totalJobCount: number): string {
+  return String(totalJobCount + 1).padStart(5, '0')
+}

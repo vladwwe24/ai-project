@@ -37,13 +37,14 @@ function markOverdueInvoices(invoices: Invoice[]): Invoice[] {
   })
 }
 
-const rawInvoices = storage.getAll<Invoice>(STORAGE_KEYS.INVOICES)
-
-const initialState: AppState = {
-  customers: storage.getAll<Customer>(STORAGE_KEYS.CUSTOMERS),
-  jobs: storage.getAll<Job>(STORAGE_KEYS.JOBS),
-  estimates: storage.getAll<Estimate>(STORAGE_KEYS.ESTIMATES),
-  invoices: markOverdueInvoices(rawInvoices),
+function loadInitialState(): AppState {
+  const rawInvoices = storage.getAll<Invoice>(STORAGE_KEYS.INVOICES)
+  return {
+    customers: storage.getAll<Customer>(STORAGE_KEYS.CUSTOMERS),
+    jobs: storage.getAll<Job>(STORAGE_KEYS.JOBS),
+    estimates: storage.getAll<Estimate>(STORAGE_KEYS.ESTIMATES),
+    invoices: markOverdueInvoices(rawInvoices),
+  }
 }
 
 function appReducer(state: AppState, action: AppAction): AppState {
@@ -75,7 +76,7 @@ interface AppProviderProps {
 }
 
 export function AppProvider({ children }: AppProviderProps) {
-  const [state, dispatch] = useReducer(appReducer, initialState)
+  const [state, dispatch] = useReducer(appReducer, undefined, loadInitialState)
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEYS.CUSTOMERS, JSON.stringify(state.customers))
