@@ -63,7 +63,7 @@ export function AttachmentsWidget({ jobId }: Props) {
   }
 
   return (
-    <Box bg="white" borderRadius="xl" boxShadow="sm" overflow="hidden">
+    <Box borderRadius="xl" boxShadow="sm" overflow="hidden" style={{ background: 'var(--app-surface)' }}>
       <Flex align="center" px={4} py={3} borderBottomWidth={attachments.length > 0 ? '1px' : '0'} borderColor="border.subtle">
         <Text fontWeight="semibold" flex={1}>Attachments</Text>
         <IconButton

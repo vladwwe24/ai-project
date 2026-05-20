@@ -23,7 +23,7 @@ interface StatCardProps {
 
 function StatCard({ label, value }: StatCardProps) {
   return (
-    <Box borderWidth="1px" borderRadius="lg" p={4}>
+    <Box boxShadow="sm" borderRadius="xl" p={4}>
       <Text fontSize="xs" color="fg.muted" mb={1}>{label}</Text>
       <Text fontWeight="bold" fontSize="xl" lineClamp={1}>{value}</Text>
     </Box>
@@ -95,11 +95,11 @@ export function DashboardPage() {
             {actionRequired.map(job => (
               <Box
                 key={job.id}
-                borderWidth="1px"
-                borderRadius="md"
+                boxShadow="sm"
+                borderRadius="xl"
                 p={3}
                 cursor="pointer"
-                _hover={{ bg: 'gray.50' }}
+                _hover={{ bg: 'bg.subtle' }}
                 onClick={() => void navigate(`/jobs/${job.id}`)}
               >
                 <Flex align="center" justify="space-between">

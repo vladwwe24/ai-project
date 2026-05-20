@@ -84,8 +84,8 @@ export function InvoiceListPage() {
           return (
             <Box
               key={inv.id}
-              borderWidth="1px"
-              borderRadius="md"
+              boxShadow="sm"
+              borderRadius="xl"
               p={3}
               mb={2}
               cursor="pointer"

@@ -161,7 +161,7 @@ export function CreateJobModal({ open, initialIso, onClose }: Props) {
         id: nanoid(),
         jobId,
         invoiceNumber: generateInvoiceNumber(invoices.length),
-        lineItems: [{ id: nanoid(), description: 'Inspection', quantity: 1, unitPrice: 75 }],
+        lineItems: [{ id: nanoid(), description: 'Inspection', quantity: 1, unitPrice: 75, category: 'labor' as const }],
         taxRate: getSettings().defaultTaxRate,
         status: InvoiceStatus.UNPAID,
         createdAt: now,

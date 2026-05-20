@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useReducer, type Dispatch, type ReactNode } from 'react'
 import { ChakraProvider } from '@chakra-ui/react'
 import { system } from '@chakra-ui/react/preset'
+import { ThemeProvider } from '@/shared/lib/ThemeContext'
 import type { Customer } from '@/entities/customer/model/types'
 import type { Job } from '@/entities/job/model/types'
 import type { Estimate } from '@/entities/estimate/model/types'
@@ -96,11 +97,13 @@ export function AppProvider({ children }: AppProviderProps) {
 
   return (
     <ChakraProvider value={system}>
-      <AppStateContext.Provider value={state}>
-        <AppDispatchContext.Provider value={dispatch}>
-          {children}
-        </AppDispatchContext.Provider>
-      </AppStateContext.Provider>
+      <ThemeProvider>
+        <AppStateContext.Provider value={state}>
+          <AppDispatchContext.Provider value={dispatch}>
+            {children}
+          </AppDispatchContext.Provider>
+        </AppStateContext.Provider>
+      </ThemeProvider>
     </ChakraProvider>
   )
 }

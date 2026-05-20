@@ -1,7 +1,9 @@
-import { Box, Flex, Text } from '@chakra-ui/react'
+import { Box, Flex, IconButton, Text } from '@chakra-ui/react'
 import { NavLink } from 'react-router-dom'
 import { LuLayoutDashboard, LuCalendar, LuUsers, LuWrench, LuFileText, LuSettings } from 'react-icons/lu'
+import { MdDarkMode, MdLightMode } from 'react-icons/md'
 import type { IconType } from 'react-icons'
+import { useTheme } from '@/shared/lib/ThemeContext'
 
 const navItems: { to: string; label: string; icon: IconType }[] = [
   { to: '/', label: 'Dashboard', icon: LuLayoutDashboard },
@@ -23,8 +25,12 @@ function SidebarLink({ to, label, icon: Icon }: { to: string; label: string; ico
           borderRadius="md"
           fontWeight={isActive ? 'semibold' : 'normal'}
           bg={isActive ? 'blue.50' : 'transparent'}
-          color={isActive ? 'blue.700' : 'inherit'}
-          _hover={{ bg: isActive ? 'blue.50' : 'gray.100' }}
+          color={isActive ? 'blue.700' : 'fg.muted'}
+          _dark={{
+            bg: isActive ? 'rgba(99,120,255,0.18)' : 'transparent',
+            color: isActive ? 'blue.300' : 'fg.muted',
+          }}
+          _hover={{ bg: isActive ? undefined : 'bg.subtle' }}
           cursor="pointer"
         >
           <Icon size={18} />
@@ -36,6 +42,8 @@ function SidebarLink({ to, label, icon: Icon }: { to: string; label: string; ico
 }
 
 export function Sidebar() {
+  const { dark, toggle } = useTheme()
+
   return (
     <Box
       as="nav"
@@ -46,6 +54,7 @@ export function Sidebar() {
       display="flex"
       flexDirection="column"
       flexShrink={0}
+      style={{ background: 'var(--app-nav-bg)' }}
     >
       <Text fontWeight="bold" fontSize="lg" mb={6}>ApplianceTrack</Text>
 
@@ -54,6 +63,12 @@ export function Sidebar() {
       </Flex>
 
       <SidebarLink to="/settings" label="Settings" icon={LuSettings} />
+
+      <Flex justify="center" mt={3} pt={3} borderTopWidth="1px" borderColor="border.subtle">
+        <IconButton aria-label="Toggle theme" size="sm" variant="ghost" onClick={toggle}>
+          {dark ? <MdLightMode /> : <MdDarkMode />}
+        </IconButton>
+      </Flex>
     </Box>
   )
 }

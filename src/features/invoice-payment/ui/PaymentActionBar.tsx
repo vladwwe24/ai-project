@@ -5,6 +5,7 @@ import type { Invoice } from '@/entities/invoice/model/types'
 import { InvoiceStatus } from '@/entities/invoice/model/types'
 import { JobStatus } from '@/entities/job/model/types'
 import { selectJobById } from '@/entities/job/model/slice'
+import { calcSubtotal, calcTaxableSubtotal, calcTax, calcTotal } from '@/entities/estimate/model/calcHelpers'
 import { AppModal } from '@/shared/ui/AppModal'
 import { ConfirmDialog } from '@/shared/ui/ConfirmDialog'
 
@@ -32,12 +33,17 @@ export function PaymentActionBar({ invoice, jobId }: Props) {
 
   function markPaid() {
     const now = new Date().toISOString()
+    const subtotal = calcSubtotal(invoice.lineItems)
+    const taxableSubtotal = calcTaxableSubtotal(invoice.lineItems)
+    const tax = calcTax(taxableSubtotal, invoice.taxRate)
+    const total = calcTotal(subtotal, tax)
     dispatch({
       type: 'invoice/UPDATE',
       payload: {
         ...invoice,
         status: InvoiceStatus.PAID,
         paidAt: now,
+        paidAmount: total,
         updatedAt: now,
       },
     })
@@ -73,6 +79,8 @@ export function PaymentActionBar({ invoice, jobId }: Props) {
       </Button>
       <Button
         colorPalette="yellow"
+        variant="subtle"
+        borderRadius="full"
         onClick={markPartial}
         disabled={!depositAmount || parseFloat(depositAmount) <= 0}
       >
@@ -86,12 +94,12 @@ export function PaymentActionBar({ invoice, jobId }: Props) {
       <Flex gap={2} mt={3} pt={3} borderTopWidth="1px" borderColor="border.subtle" align="center">
         <Text fontSize="sm" color="fg.muted" mr="auto">Payment</Text>
         {canMarkPartial && (
-          <Button size="sm" variant="outline" colorPalette="yellow" onClick={() => setPartialOpen(true)}>
+          <Button size="sm" variant="subtle" borderRadius="full" colorPalette="yellow" onClick={() => setPartialOpen(true)}>
             Mark Partial
           </Button>
         )}
         {canMarkPaid && (
-          <Button size="sm" colorPalette="green" onClick={() => setConfirmPaid(true)}>
+          <Button size="sm" colorPalette="green" variant="subtle" borderRadius="full" onClick={() => setConfirmPaid(true)}>
             Mark Paid
           </Button>
         )}

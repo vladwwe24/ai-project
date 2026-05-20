@@ -39,7 +39,7 @@ export function CustomerDetailPage() {
       />
 
       <Box px={4} pb={4}>
-        <Box borderWidth="1px" borderRadius="md" p={3} mb={4}>
+        <Box boxShadow="sm" borderRadius="xl" p={3} mb={4}>
           <Flex direction="column" gap={1}>
             <Text fontSize="sm"><Text as="span" fontWeight="medium">Phone: </Text>{customer.phone}</Text>
             {customer.email && (
@@ -64,7 +64,7 @@ export function CustomerDetailPage() {
                 borderRadius="md"
                 p={3}
                 cursor="pointer"
-                _hover={{ bg: 'gray.50' }}
+                _hover={{ bg: 'bg.subtle' }}
                 onClick={() => navigate(`/jobs/${job.id}`)}
               >
                 <Flex align="center" justify="space-between">

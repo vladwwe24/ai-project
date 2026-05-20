@@ -5,7 +5,7 @@ import type { Estimate } from '@/entities/estimate/model/types'
 import { EstimateStatus } from '@/entities/estimate/model/types'
 import { calcSubtotal, calcTax, calcTotal } from '@/entities/estimate/model/calcHelpers'
 import { EstimateStatusBadge } from '@/entities/estimate/ui/EstimateStatusBadge'
-import { LineItemEditor } from '@/widgets/line-item-editor/ui/LineItemEditor'
+import { SectionedLineItemEditor } from '@/widgets/line-item-editor/ui/SectionedLineItemEditor'
 import { formatCurrency } from '@/shared/lib/index'
 
 interface Props {
@@ -63,7 +63,7 @@ export function ApprovalForm({ estimate }: Props) {
     <Box>
       <Text fontSize="lg" fontWeight="bold" mb={4}>Review Estimate</Text>
 
-      <LineItemEditor items={estimate.lineItems} readOnly onChange={() => {}} />
+      <SectionedLineItemEditor lineItems={estimate.lineItems} readOnly onChange={() => {}} />
 
       <Box mt={3} borderTopWidth="1px" borderColor="border.subtle" pt={2}>
         <Flex justify="space-between" mb={1}>

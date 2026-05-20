@@ -71,7 +71,7 @@ export function NotesWidget({ jobId }: Props) {
   // Expanded edit view
   if (editingId) {
     return (
-      <Box borderWidth="1px" borderRadius="md" overflow="hidden">
+      <Box boxShadow="sm" borderRadius="xl" overflow="hidden">
         <Flex
           align="center"
           px={3}
@@ -119,7 +119,7 @@ export function NotesWidget({ jobId }: Props) {
 
   // Collapsed view
   return (
-    <Box borderWidth="1px" borderRadius="md" p={3}>
+    <Box boxShadow="sm" borderRadius="xl" p={3}>
       <Flex align="center" gap={2} mb={notes.length > 0 ? 2 : 0}>
         <MdDescription color="var(--chakra-colors-fg-muted)" />
         <Text fontWeight="semibold" flex={1} fontSize="sm">Private notes</Text>

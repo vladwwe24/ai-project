@@ -8,7 +8,7 @@ import { InvoiceStatus } from '@/entities/invoice/model/types'
 import type { Estimate } from '@/entities/estimate/model/types'
 import { EstimateStatus } from '@/entities/estimate/model/types'
 
-const SEED_VERSION = 'v4'
+const SEED_VERSION = 'v5'
 
 function dateToday(h: number, m = 0): string {
   const d = new Date()
@@ -224,8 +224,8 @@ export function seedIfEmpty(): void {
       jobId: j1Id,
       invoiceNumber: 'INV-2026-0001',
       lineItems: [
-        { id: nanoid(), description: 'GE Dishwasher Leveling Service', quantity: 1, unitPrice: 95 },
-        { id: nanoid(), description: 'Spray Arm Cleaning & Inspection', quantity: 1, unitPrice: 85 },
+        { id: nanoid(), description: 'GE Dishwasher Leveling Service', quantity: 1, unitPrice: 95, category: 'labor' as const, taxable: true },
+        { id: nanoid(), description: 'Spray Arm Cleaning & Inspection', quantity: 1, unitPrice: 85, category: 'labor' as const, taxable: true },
       ],
       taxRate: 10.35,
       status: InvoiceStatus.PAID,
@@ -238,7 +238,7 @@ export function seedIfEmpty(): void {
       jobId: j2Id,
       invoiceNumber: 'INV-2026-0002',
       lineItems: [
-        { id: nanoid(), description: 'Housecall Inspection Fee', quantity: 1, unitPrice: 95 },
+        { id: nanoid(), description: 'Housecall Inspection Fee', quantity: 1, unitPrice: 95, category: 'labor' as const, taxable: true },
       ],
       taxRate: 10.35,
       status: InvoiceStatus.UNPAID,
@@ -250,8 +250,8 @@ export function seedIfEmpty(): void {
       jobId: j3Id,
       invoiceNumber: 'INV-2026-0003',
       lineItems: [
-        { id: nanoid(), description: 'Asko Dishwasher Drain System Cleaning', quantity: 1, unitPrice: 269 },
-        { id: nanoid(), description: 'Bank Card Fee 3.5%', quantity: 1, unitPrice: 8.83 },
+        { id: nanoid(), description: 'Asko Dishwasher Drain System Cleaning', quantity: 1, unitPrice: 269, category: 'labor' as const, taxable: true },
+        { id: nanoid(), description: 'Bank Card Fee 3.5%', quantity: 1, unitPrice: 8.83, category: 'labor' as const, taxable: false },
       ],
       taxRate: 10.35,
       status: InvoiceStatus.PAID,
@@ -264,7 +264,7 @@ export function seedIfEmpty(): void {
       jobId: j4Id,
       invoiceNumber: 'INV-2026-0004',
       lineItems: [
-        { id: nanoid(), description: 'Bosch Microwave Housecall Inspection Fee', quantity: 1, unitPrice: 95 },
+        { id: nanoid(), description: 'Bosch Microwave Housecall Inspection Fee', quantity: 1, unitPrice: 95, category: 'labor' as const, taxable: true },
       ],
       taxRate: 10.35,
       status: InvoiceStatus.UNPAID,
@@ -276,7 +276,7 @@ export function seedIfEmpty(): void {
       jobId: j5Id,
       invoiceNumber: 'INV-2026-0005',
       lineItems: [
-        { id: nanoid(), description: 'Housecall Inspection Fee', quantity: 1, unitPrice: 95 },
+        { id: nanoid(), description: 'Housecall Inspection Fee', quantity: 1, unitPrice: 95, category: 'labor' as const, taxable: true },
       ],
       taxRate: 10.35,
       status: InvoiceStatus.UNPAID,
@@ -288,7 +288,7 @@ export function seedIfEmpty(): void {
       jobId: j6Id,
       invoiceNumber: 'INV-2026-0006',
       lineItems: [
-        { id: nanoid(), description: 'Housecall Inspection Fee', quantity: 1, unitPrice: 95 },
+        { id: nanoid(), description: 'Housecall Inspection Fee', quantity: 1, unitPrice: 95, category: 'labor' as const, taxable: true },
       ],
       taxRate: 10.35,
       status: InvoiceStatus.UNPAID,
@@ -300,7 +300,7 @@ export function seedIfEmpty(): void {
       jobId: j7Id,
       invoiceNumber: 'INV-2026-0007',
       lineItems: [
-        { id: nanoid(), description: 'Housecall Inspection Fee', quantity: 1, unitPrice: 95 },
+        { id: nanoid(), description: 'Housecall Inspection Fee', quantity: 1, unitPrice: 95, category: 'labor' as const, taxable: true },
       ],
       taxRate: 10.35,
       status: InvoiceStatus.UNPAID,
@@ -316,9 +316,9 @@ export function seedIfEmpty(): void {
       jobId: j2Id,
       estimateNumber: '000001',
       lineItems: [
-        { id: nanoid(), description: 'Bosch Dishwasher Control Board Replacement', quantity: 1, unitPrice: 285 },
-        { id: nanoid(), description: 'Control Board (Part #11027789)', quantity: 1, unitPrice: 195 },
-        { id: nanoid(), description: 'Labor – 1.5 hrs', quantity: 1.5, unitPrice: 95 },
+        { id: nanoid(), description: 'Control Board Replacement Labor', quantity: 1, unitPrice: 285, category: 'labor' as const, taxable: true },
+        { id: nanoid(), description: 'Control Board (Part #11027789)', quantity: 1, unitPrice: 195, category: 'material' as const, taxable: true },
+        { id: nanoid(), description: 'Labor – 1.5 hrs', quantity: 1.5, unitPrice: 95, category: 'labor' as const, taxable: true },
       ],
       taxRate: 10.35,
       status: EstimateStatus.SENT,
@@ -331,9 +331,9 @@ export function seedIfEmpty(): void {
       jobId: j5Id,
       estimateNumber: '000002',
       lineItems: [
-        { id: nanoid(), description: 'Samsung Refrigerator Diagnostic & Labor', quantity: 1, unitPrice: 145 },
-        { id: nanoid(), description: 'Evaporator Fan Motor (Part #DA31-00187A)', quantity: 1, unitPrice: 85 },
-        { id: nanoid(), description: 'Defrost Heater Assembly', quantity: 1, unitPrice: 65 },
+        { id: nanoid(), description: 'Samsung Refrigerator Diagnostic & Labor', quantity: 1, unitPrice: 145, category: 'labor' as const, taxable: true },
+        { id: nanoid(), description: 'Evaporator Fan Motor (Part #DA31-00187A)', quantity: 1, unitPrice: 85, category: 'material' as const, taxable: true },
+        { id: nanoid(), description: 'Defrost Heater Assembly', quantity: 1, unitPrice: 65, category: 'material' as const, taxable: true },
       ],
       taxRate: 10.35,
       status: EstimateStatus.DRAFT,
@@ -345,8 +345,8 @@ export function seedIfEmpty(): void {
       jobId: j1Id,
       estimateNumber: '000003',
       lineItems: [
-        { id: nanoid(), description: 'GE Dishwasher Leveling Service', quantity: 1, unitPrice: 95 },
-        { id: nanoid(), description: 'Spray Arm Cleaning & Inspection', quantity: 1, unitPrice: 85 },
+        { id: nanoid(), description: 'GE Dishwasher Leveling Service', quantity: 1, unitPrice: 95, category: 'labor' as const, taxable: true },
+        { id: nanoid(), description: 'Spray Arm Cleaning & Inspection', quantity: 1, unitPrice: 85, category: 'labor' as const, taxable: true },
       ],
       taxRate: 10.35,
       status: EstimateStatus.APPROVED,

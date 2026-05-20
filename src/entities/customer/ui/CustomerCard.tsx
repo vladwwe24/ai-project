@@ -9,11 +9,11 @@ interface Props {
 export function CustomerCard({ customer, onClick }: Props) {
   return (
     <Box
-      borderWidth="1px"
-      borderRadius="md"
+      boxShadow="sm"
+      borderRadius="xl"
       p={3}
       cursor="pointer"
-      _hover={{ bg: 'gray.50' }}
+      _hover={{ bg: 'bg.subtle' }}
       onClick={onClick}
     >
       <Text fontWeight="medium">{customer.name}</Text>

@@ -13,7 +13,7 @@ const navItems: { to: string; label: string; icon: IconType }[] = [
 
 export function BottomNav() {
   return (
-    <Box as="nav" borderTopWidth="1px" bg="white">
+    <Box as="nav" borderTopWidth="1px" style={{ background: 'var(--app-nav-bg)' }}>
       <Flex h="56px">
         {navItems.map(({ to, label, icon: Icon }) => (
           <NavLink key={to} to={to} end={to === '/'} style={{ flex: 1, textDecoration: 'none' }}>
@@ -24,7 +24,7 @@ export function BottomNav() {
                 justify="center"
                 h="full"
                 gap="2px"
-                color={isActive ? 'blue.600' : 'gray.500'}
+                color={isActive ? 'blue.500' : 'fg.muted'}
               >
                 <Icon size={22} />
                 <Text fontSize="10px" lineHeight={1}>{label}</Text>

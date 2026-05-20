@@ -4,13 +4,14 @@ import { useAppDispatch, useAppState } from '@/app/providers/AppProvider'
 import type { Estimate } from '@/entities/estimate/model/types'
 import { EstimateStatus } from '@/entities/estimate/model/types'
 import { selectInvoiceByJob } from '@/entities/invoice/model/slice'
+import { InvoiceStatus } from '@/entities/invoice/model/types'
 import { EstimateStatusBadge } from '@/entities/estimate/ui/EstimateStatusBadge'
-import { calcSubtotal, calcTax, calcTotal } from '@/entities/estimate/model/calcHelpers'
+import { calcSubtotal, calcTaxableSubtotal, calcTax, calcTotal } from '@/entities/estimate/model/calcHelpers'
 import type { LineItem } from '@/entities/line-item/model/types'
 import { ConfirmDialog } from '@/shared/ui/ConfirmDialog'
 import { AppModal } from '@/shared/ui/AppModal'
 import { formatCurrency, formatDate, nanoid } from '@/shared/lib/index'
-import { LineItemEditor } from '@/widgets/line-item-editor/ui/LineItemEditor'
+import { SectionedLineItemEditor } from '@/widgets/line-item-editor/ui/SectionedLineItemEditor'
 import { SendEstimateButton } from '@/features/estimate-send/ui/SendEstimateButton'
 
 interface Props {
@@ -38,7 +39,7 @@ export function EstimateDetailModal({ estimate, open, onClose }: Props) {
 
   const isEditable = estimate.status === EstimateStatus.DRAFT
   const subtotal = calcSubtotal(lineItems)
-  const tax = calcTax(subtotal, taxRate)
+  const tax = calcTax(calcTaxableSubtotal(lineItems), taxRate)
   const total = calcTotal(subtotal, tax)
 
   function handleSave() {
@@ -56,11 +57,21 @@ export function EstimateDetailModal({ estimate, open, onClose }: Props) {
 
   function handleApplyToInvoice() {
     if (!invoice) return
+    const newLineItems = [...invoice.lineItems, ...lineItems.map(i => ({ ...i, id: nanoid() }))]
+    const newTotal = calcTotal(
+      calcSubtotal(newLineItems),
+      calcTax(calcTaxableSubtotal(newLineItems), invoice.taxRate),
+    )
+    const updatedStatus =
+      invoice.status === InvoiceStatus.PAID && newTotal > (invoice.paidAmount ?? 0)
+        ? InvoiceStatus.PARTIAL
+        : invoice.status
     dispatch({
       type: 'invoice/UPDATE',
       payload: {
         ...invoice,
-        lineItems: lineItems.map(item => ({ ...item, id: nanoid() })),
+        lineItems: newLineItems,
+        status: updatedStatus,
         updatedAt: new Date().toISOString(),
       },
     })
@@ -125,8 +136,8 @@ export function EstimateDetailModal({ estimate, open, onClose }: Props) {
             Created {formatDate(estimate.createdAt)}
           </Text>
 
-          <LineItemEditor
-            items={lineItems}
+          <SectionedLineItemEditor
+            lineItems={lineItems}
             readOnly={!isEditable}
             onChange={handleLineItemsChange}
           />
@@ -213,7 +224,7 @@ export function EstimateDetailModal({ estimate, open, onClose }: Props) {
         onClose={() => setConfirmApply(false)}
         onConfirm={handleApplyToInvoice}
         title="Apply to Invoice"
-        message="This will replace all current invoice line items with this estimate's items. Continue?"
+        message="This will add this estimate's items to the invoice. Existing items are kept."
         confirmLabel="Apply"
       />
     </>

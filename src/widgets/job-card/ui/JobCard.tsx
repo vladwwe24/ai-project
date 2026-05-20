@@ -12,11 +12,11 @@ interface Props {
 export function JobCard({ job, customerName, onClick }: Props) {
   return (
     <Box
-      borderWidth="1px"
-      borderRadius="md"
+      boxShadow="sm"
+      borderRadius="xl"
       p={3}
       cursor="pointer"
-      _hover={{ bg: 'gray.50' }}
+      _hover={{ bg: 'bg.subtle' }}
       onClick={onClick}
     >
       <Flex justify="space-between" align="flex-start" mb={1}>

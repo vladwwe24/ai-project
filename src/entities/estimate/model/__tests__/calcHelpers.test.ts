@@ -3,7 +3,7 @@ import { calcSubtotal, calcTax, calcTotal } from '../calcHelpers'
 import type { LineItem } from '@/entities/line-item/model/types'
 
 function item(description: string, quantity: number, unitPrice: number): LineItem {
-  return { id: '1', description, quantity, unitPrice }
+  return { id: '1', description, quantity, unitPrice, category: 'labor' as const }
 }
 
 describe('calcSubtotal', () => {
