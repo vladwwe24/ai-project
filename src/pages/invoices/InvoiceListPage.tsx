@@ -58,7 +58,8 @@ export function InvoiceListPage() {
             border: '1px solid var(--chakra-colors-border)',
             borderRadius: '6px',
             fontSize: '14px',
-            background: 'white',
+            background: 'var(--app-surface)',
+            color: 'inherit',
           }}
         >
           {STATUS_OPTIONS.map(opt => (

@@ -4,4 +4,32 @@
   --app-surface: #ffffff;
   --app-nav-bg: #ffffff;
   --app-hover: rgba(0, 0, 0, 0.04);
+
+  /* semantic text colors */
+  --color-success: #16a34a;
+  --color-warning: #d97706;
+  --color-error:   #dc2626;
+  --color-info:    #2563eb;
+
+  /* status badge bg + fg — 9 semantic groups */
+  --badge-success-bg: #dcfce7;  --badge-success-fg: #15803d;
+  --badge-danger-bg:  #fee2e2;  --badge-danger-fg:  #b91c1c;
+  --badge-warning-bg: #fef9c3;  --badge-warning-fg: #854d0e;
+  --badge-info-bg:    #dbeafe;  --badge-info-fg:    #1d4ed8;
+  --badge-neutral-bg: #f3f4f6;  --badge-neutral-fg: #4b5563;
+  --badge-orange-bg:  #ffedd5;  --badge-orange-fg:  #c2410c;
+  --badge-purple-bg:  #ede9fe;  --badge-purple-fg:  #6d28d9;
+  --badge-teal-bg:    #ccfbf1;  --badge-teal-fg:    #0f766e;
+  --badge-cyan-bg:    #cffafe;  --badge-cyan-fg:    #0e7490;
+
+  /* status banners (inline info/success/error message boxes) */
+  --banner-info-bg:    #eff6ff;  --banner-info-fg:    #1d4ed8;
+  --banner-success-bg: #f0fdf4;  --banner-success-fg: #166534;
+  --banner-error-bg:   #fef2f2;  --banner-error-fg:   #dc2626;
+
+  /* timeline job block */
+  --job-block-bg:       #bfdbfe;
+  --job-block-hover-bg: #93c5fd;
+  --job-block-border:   #3b82f6;
+  --job-block-fg:       #1e3a5f;
 }

@@ -18,3 +18,7 @@ body {
 #root {
   min-height: 100dvh;
 }
+
+.job-block:hover {
+  background: var(--job-block-hover-bg) !important;
+}

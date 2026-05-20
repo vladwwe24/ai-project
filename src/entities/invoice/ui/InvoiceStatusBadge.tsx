@@ -5,12 +5,12 @@ interface Props {
   status: InvoiceStatus
 }
 
-const colorMap: Record<string, string> = {
-  UNPAID: 'orange',
-  PARTIAL: 'yellow',
-  PAID: 'green',
-  OVERDUE: 'red',
-  CANCELLED: 'gray',
+const varMap: Record<string, string> = {
+  UNPAID:    'orange',
+  PARTIAL:   'warning',
+  PAID:      'success',
+  OVERDUE:   'danger',
+  CANCELLED: 'neutral',
 }
 
 const labelMap: Record<string, string> = {
@@ -22,8 +22,9 @@ const labelMap: Record<string, string> = {
 }
 
 export function InvoiceStatusBadge({ status }: Props) {
+  const k = varMap[status] ?? 'neutral'
   return (
-    <Badge colorPalette={colorMap[status] ?? 'gray'} variant="subtle">
+    <Badge variant="subtle" style={{ background: `var(--badge-${k}-bg)`, color: `var(--badge-${k}-fg)` }}>
       {labelMap[status] ?? status}
     </Badge>
   )

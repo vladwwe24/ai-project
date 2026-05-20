@@ -1,7 +1,7 @@
 # ApplianceTrack — Session Handoff
 
-**Date:** 2026-05-19
-**Session status:** Sprint 4 + dark/light theme complete, ready for cleanup + deploy
+**Date:** 2026-05-20
+**Session status:** Sprint 5 complete (dark/light mode consistency), ready for cleanup + deploy
 
 ---
 
@@ -12,7 +12,7 @@ Covers the full job lifecycle: customer intake → scheduling on a day timeline 
 
 All data stored in **localStorage** (mock CRUD interface, designed to be swapped for a real API later). No backend. No auth for now.
 
-Full plan: `docs/architecture.md` (FSD structure), `docs/plan.md` (Sprint 1), `docs/plan-v2.md` (Sprint 2), `docs/plan-v3.md` (Sprint 3), `docs/plan-v4.md` (Sprint 4).
+Full plan: `docs/architecture.md` (FSD structure), `docs/plan.md` (Sprint 1), `docs/plan-v2.md` (Sprint 2), `docs/plan-v3.md` (Sprint 3), `docs/plan-v4.md` (Sprint 4), `docs/plan-v5.md` (Sprint 5).
 
 ---
 
@@ -89,34 +89,74 @@ All complete. Covers: project scaffolding, TypeScript types, localStorage servic
 
 **S4-6 — UI/UX standardization: pill buttons + card shadow audit**
 - `src/features/invoice-payment/ui/PaymentActionBar.tsx` — Mark Partial, Mark Paid, Confirm Deposit buttons now `variant="subtle" borderRadius="full"`
-- All top-level card outer boxes across the app swapped from `borderWidth="1px" borderRadius="md"` to `boxShadow="sm" borderRadius="xl"`:
-  - `src/widgets/invoice-widget/ui/InvoiceWidget.tsx`
-  - `src/widgets/estimate-widget/ui/EstimateWidget.tsx` (outer only; inner list items stay bordered)
-  - `src/widgets/notes-widget/ui/NotesWidget.tsx` (both edit and collapsed views)
-  - `src/widgets/attachments-widget/ui/AttachmentsWidget.tsx`
-  - `src/pages/customers/CustomerDetailPage.tsx` (contact info card; nested job items stay bordered)
-  - `src/pages/invoices/InvoiceListPage.tsx` (list item cards)
-  - `src/widgets/job-card/ui/JobCard.tsx`
-  - `src/entities/customer/ui/CustomerCard.tsx`
-  - `src/pages/dashboard/DashboardPage.tsx` (StatCard + Action Required items)
+- All top-level card outer boxes across the app swapped from `borderWidth="1px" borderRadius="md"` to `boxShadow="sm" borderRadius="xl"`
 - All `gray.50` hover states replaced with `bg.subtle` (semantic token, adapts to dark mode)
 - Build verified zero errors
 
-**Dark/Light Theme**
+**Dark/Light Theme (S4 addendum)**
 - `src/app/styles/_theme-light.scss` — CSS custom properties for light theme on `:root`
 - `src/app/styles/_theme-dark.scss` — CSS custom properties for dark theme on `.dark` class (deep navy-indigo: bg `#0e1523`, surface `#16213e`, nav `#0a1018`)
 - `src/app/styles/global.scss` — imports both theme files via `@use`; applies `var(--app-bg)` on `body` with 0.25s transition
-- `src/shared/lib/ThemeContext.tsx` — `ThemeProvider` + `useTheme` hook; toggles `.dark` class on `<html>` (aligns with Chakra v3's `_dark` condition); persists to `localStorage`; applies class synchronously in `useState` initializer to prevent theme flash
+- `src/shared/lib/ThemeContext.tsx` — `ThemeProvider` + `useTheme` hook; toggles `.dark` class on `<html>`; persists to `localStorage`; applies class synchronously to prevent flash
 - `src/app/providers/AppProvider.tsx` — wrapped with `ThemeProvider`
-- `src/widgets/app-shell/ui/Navbar.tsx` — sun/moon icon toggle button (top-right, mobile); uses `var(--app-nav-bg)`
-- `src/widgets/app-shell/ui/Sidebar.tsx` — sun/moon icon toggle at bottom; dark-aware active/hover states via Chakra `_dark` prop; uses `var(--app-nav-bg)`
-- `src/widgets/app-shell/ui/BottomNav.tsx` — `var(--app-nav-bg)` instead of `bg="white"`; `fg.muted` for inactive items; `blue.500` for active
+- `src/widgets/app-shell/ui/Navbar.tsx`, `Sidebar.tsx`, `BottomNav.tsx` — sun/moon toggle; all use `var(--app-nav-bg)`
 - `src/widgets/attachments-widget/ui/AttachmentsWidget.tsx` — `var(--app-surface)` instead of `bg="white"`
+- Build verified zero errors
+
+### Sprint 5 — Dark/Light Mode Consistency (ALL COMPLETE)
+
+**S5-1 — Extend theme files with all CSS custom properties**
+- `src/app/styles/_theme-light.scss` — added semantic text colors, 9 badge groups × bg+fg, 3 banner groups × bg+fg, timeline job block vars
+- `src/app/styles/_theme-dark.scss` — matching dark-palette values for all new vars
+- Build verified zero errors (vars defined, not yet consumed)
+
+**S5-2 — Fix `AppModal` black background in dark mode**
+- `src/shared/ui/AppModal.tsx` — `DialogContent` gets `style={{ background: 'var(--app-surface)' }}`; `DialogFooter` also gets `style={{ background: 'var(--app-surface)' }}` (Chakra v3 applies its own white bg to footer)
+- Build verified zero errors
+
+**S5-3 — Status badge components → CSS vars**
+- `src/entities/job/ui/JobStatusBadge.tsx` — `colorMap` replaced with `varMap`; badge uses `style={{ background: var(--badge-X-bg), color: var(--badge-X-fg) }}`
+- `src/entities/invoice/ui/InvoiceStatusBadge.tsx` — same pattern
+- `src/entities/estimate/ui/EstimateStatusBadge.tsx` — same pattern
+- Build verified zero errors
+
+**S5-4 — Fix `JobDetailPage` white cards, hero, and buttons**
+- `src/pages/jobs/JobDetailPage.tsx` — hero `bg="gray.200"` → `var(--app-surface)`; back/more icon buttons `variant="solid" bg="whiteAlpha.900"` → `variant="ghost"`; icon/text colors → `fg.muted`; all 3 cards `bg="white"` → `var(--app-surface)`
+- Build verified zero errors
+
+**S5-5 — Fix native `<select>` filter backgrounds**
+- `src/pages/invoices/InvoiceListPage.tsx` — select `background: 'white'` → `var(--app-surface)` + `color: inherit`
+- `src/pages/jobs/JobListPage.tsx` — same
+- Build verified zero errors
+
+**S5-6 — Fix autocomplete dropdown backgrounds**
+- `src/widgets/create-job-modal/ui/CreateJobModal.tsx` — customer suggestion list `bg="white"` → `style={{ background: 'var(--app-surface)' }}`
+- `src/features/create-customer/ui/CreateCustomerModal.tsx` — address suggestion list same
+- Build verified zero errors
+
+**S5-7 — Fix Export modal date input backgrounds**
+- `src/features/export/ui/ExportModal.tsx` — `inputStyle.background: 'white'` → `var(--app-surface)` + `color: inherit`
+- Build verified zero errors
+
+**S5-8 — Fix estimate status banners**
+- `src/widgets/estimate-widget/ui/EstimateDetailModal.tsx` — SENT banner `bg="blue.50"` → `var(--banner-info-bg/fg)`; APPROVED `bg="green.50"` → `var(--banner-success-bg/fg)`; REJECTED `bg="red.50"` → `var(--banner-error-bg/fg)`; hardcoded `color=` props removed from child `Text` elements
+- Build verified zero errors
+
+**S5-9 — Fix `InvoiceWidget` semantic text colors**
+- `src/widgets/invoice-widget/ui/InvoiceWidget.tsx` — "Paid" row `color="green.600"` → `var(--color-success)`; "Balance due" `color="orange.600"` → `var(--color-warning)`; validation error `color="red.500"` → `var(--color-error)`
+- Build verified zero errors
+
+**S5-10 — Fix timeline job block colors**
+- `src/widgets/timeline-grid/ui/JobBlock.tsx` — removed `bg="blue.100"` and `_hover={{ bg: 'blue.200' }}`; added `className="job-block"` + `style={{ background: var(--job-block-bg), color: var(--job-block-fg), borderLeftColor: var(--job-block-border) }}`
+- `src/app/styles/global.scss` — added `.job-block:hover { background: var(--job-block-hover-bg) !important; }`
 - Build verified zero errors
 
 ---
 
 ## Critical Notes for Next Session
+
+### ⚠️ Color extraction — THE RULE (enforced from S5 onward)
+`bg="white"` and hardcoded Chakra color tokens (`colorPalette="green"`, `color="green.600"`, `bg="green.50"`) are banned. All colors must come from CSS vars in `_theme-light.scss` / `_theme-dark.scss`. Use `var(--app-surface)` for surfaces, `var(--badge-X-bg/fg)` for badges, `var(--color-X)` for semantic text, `var(--banner-X-bg/fg)` for info/success/error boxes.
 
 ### ⚠️ Modal architecture — THE RULE
 `AppModal` is the **only** modal wrapper. Never create a raw `DialogRoot` outside of `AppModal` or `ConfirmDialog`. Both wrap in `ModalPortal` → `#modal-root`. Any new modal must use `AppModal`.
@@ -135,12 +175,10 @@ import { system } from '@chakra-ui/react/preset'
 - **Always add `lazyMount` + `unmountOnExit` to every `DialogRoot`** — omitting these causes `overflow: hidden; pointer-events: none` to leak onto `<body>` after close
 - `noOfLines` prop **does not exist** in v3 — use `style={{ WebkitLineClamp: N, display: '-webkit-box', WebkitBoxOrient: 'vertical', overflow: 'hidden' }}`
 - **`ColorModeProvider` and `useColorMode` do NOT exist in Chakra v3** — use the custom `ThemeContext` (`src/shared/lib/ThemeContext.tsx`) instead
+- **`DialogFooter` has its own white background in Chakra v3** — always add `style={{ background: 'var(--app-surface)' }}` to `DialogFooter` alongside `DialogContent`
 
 ### ⚠️ Theme system — how dark mode works
 Chakra v3's `_dark` condition selector is `.dark &` (class on an ancestor). Our `ThemeProvider` toggles `.dark` on `document.documentElement`. The SASS files also use `.dark { ... }`. Both systems stay in sync automatically. Do not use `data-theme` attribute — Chakra v3 does not use it.
-
-### ⚠️ CSS custom properties for backgrounds
-Components that had `bg="white"` hardcoded now use `style={{ background: 'var(--app-surface)' }}` or `style={{ background: 'var(--app-nav-bg)' }}`. Do not add new `bg="white"` hardcoding — use CSS vars or semantic tokens (`bg.subtle`, `fg.muted`, `border.subtle`).
 
 ### ⚠️ Reducers are pure — all storage writes are in AppProvider useEffect
 Never add `storage.create/update/remove` calls inside reducer functions.
@@ -149,7 +187,7 @@ Never add `storage.create/update/remove` calls inside reducer functions.
 `category: 'labor' | 'material'` is **required** (not optional) after S4-3. Every place that creates a `LineItem` must set it. Filter rule: `item.category !== 'material'` → Labor; `item.category === 'material'` → Materials. `taxable` remains optional (defaults to `true` when undefined).
 
 ### ⚠️ `InvoiceWidget` useEffect watches `invoice?.updatedAt`
-The dependency array is `[invoice?.id, invoice?.updatedAt, isLocked]`. This ensures local `lineItems` state re-syncs whenever the invoice is externally updated. Do not remove `invoice?.updatedAt` from deps. Note: was `isPaid` before S4-5 — now `isLocked`.
+The dependency array is `[invoice?.id, invoice?.updatedAt, isLocked]`. This ensures local `lineItems` state re-syncs whenever the invoice is externally updated. Do not remove `invoice?.updatedAt` from deps.
 
 ### ⚠️ `InvoiceWidget` edit lock is `isLocked`, not `isPaid`
 After S4-5: only `CANCELLED` invoices block editing (`isLocked = invoice?.status === InvoiceStatus.CANCELLED`). PAID and PARTIAL invoices are editable. `handleSave()` auto-derives new status: `total > paidAmount → PARTIAL`, `total ≤ paidAmount → PAID`.
@@ -188,24 +226,21 @@ Use plain `<select>` with inline styles for simple dropdowns. For searchable dro
 | Step | What | Key files |
 |------|------|-----------|
 | Cleanup | Delete orphaned `StatusActionBar.tsx` | `src/features/job-status/ui/StatusActionBar.tsx` |
-| Deploy | Push to GitHub | `git remote add origin git@github.com:vladwwe24/appliance-repair-frontend.git && git branch -M main && git push -u origin main` |
+| Deploy | Push to GitHub | run: `git remote add origin git@github.com:vladwwe24/appliance-repair-frontend.git && git branch -M main && git push -u origin main` |
 
 ---
 
 ## Where to Start Next Session
 
-**Cleanup — delete orphaned StatusActionBar**
+**Cleanup — Delete orphaned StatusActionBar**
+
+`src/features/job-status/ui/StatusActionBar.tsx` is not imported or rendered anywhere. Delete it, then run `npm run build` to confirm zero errors.
+
+**Deploy — Push to GitHub**
 
 ```bash
-# 1. Delete the orphaned file
-rm src/features/job-status/ui/StatusActionBar.tsx
-
-# 2. Verify nothing imports it
-npm run build   # must be zero errors
-
-# 3. Deploy to GitHub
 git add -A
-git commit -m "Sprint 4 complete: estimates/invoices sync, payment logic, UI polish, dark theme"
+git commit -m "Sprint 5 complete — full dark/light mode consistency"
 git remote add origin git@github.com:vladwwe24/appliance-repair-frontend.git
 git branch -M main
 git push -u origin main
@@ -229,9 +264,10 @@ Greedy column assignment: jobs sorted by start time; each assigned to the first 
 
 ### Dark/Light theme system
 - **`ThemeProvider`** (`src/shared/lib/ThemeContext.tsx`) — toggles `.dark` class on `document.documentElement`. Persists to `localStorage` under key `app-color-mode`. Applies synchronously in `useState` initializer to avoid flash.
-- **SASS files** — `_theme-light.scss` (`:root`) and `_theme-dark.scss` (`.dark`) define CSS custom properties: `--app-bg`, `--app-surface`, `--app-nav-bg`, `--app-hover`. Dark palette: deep navy-indigo (`#0e1523` / `#16213e` / `#0a1018`).
+- **SASS files** — `_theme-light.scss` (`:root`) and `_theme-dark.scss` (`.dark`) define CSS custom properties. Covers backgrounds, badge colors, text colors, banners, and timeline job blocks.
 - **Chakra `_dark` prop** aligns automatically because Chakra v3's dark condition is `.dark &` — same class we toggle.
 - **Toggle button** in `Navbar` (mobile, top-right) and `Sidebar` (desktop, bottom). Sun icon in dark mode, moon icon in light mode.
+- **Color extraction rule** — `colorPalette` on Badge is replaced with `style={{ background: 'var(--badge-X-bg)', color: 'var(--badge-X-fg)' }}`. All semantic text colors (`green.600`, `orange.600`, `red.500`) become `var(--color-success/warning/error)`. Status banners use `var(--banner-X-bg/fg)`.
 
 ### Data model
 - **One invoice per job** — `selectInvoiceByJob` returns a single `Invoice | undefined`. Auto-created at job creation with one "Inspection" line item ($75, Labor category).
@@ -249,7 +285,7 @@ Greedy column assignment: jobs sorted by start time; each assigned to the first 
 - **StatusActionBar removed** — job status advances via manual picker modal in JobDetailPage.
 - **Invoice widget default read-only** — Edit button (top-right) switches to edit mode. Only CANCELLED locks editing; PAID/PARTIAL are editable with payment validation.
 - **Searchable customer field** — `CreateJobModal` uses controlled text input + filtered dropdown.
-- **Job page hero** — 180px gray area with location pin icon; acts as placeholder for a future map or photo.
+- **Job page hero** — 180px surface-color area with location pin icon; acts as placeholder for a future map or photo.
 - **Tech avatar** — hardcoded initials "VH" / "Vladyslav H." in Job Schedule card (single-technician assumption).
 - **SectionedLineItemEditor** — shared widget used by both `EstimateDetailModal` and `InvoiceWidget`; Labor/Materials split by `category`; taxable checkbox per item in edit mode.
 - **Card shadow standard** — top-level page cards use `boxShadow="sm" borderRadius="xl"`; nested list items use `borderWidth="1px" borderRadius="md"`.

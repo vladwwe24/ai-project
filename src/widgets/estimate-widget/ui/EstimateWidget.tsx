@@ -72,7 +72,7 @@ export function EstimateWidget({ jobId }: Props) {
   }
 
   return (
-    <Box boxShadow="sm" borderRadius="xl" p={3}>
+    <Box boxShadow="sm" borderRadius="xl" p={3} style={{ background: 'var(--app-surface)' }}>
       <Flex align="center" justify="space-between" mb={jobEstimates.length > 0 ? 3 : 1}>
         <Text fontWeight="semibold">Estimates</Text>
         <IconButton

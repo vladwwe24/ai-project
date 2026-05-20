@@ -221,7 +221,7 @@ export function CreateCustomerModal({ open, onClose, onCreated }: Props) {
                 left={0}
                 right={0}
                 zIndex={10}
-                bg="white"
+                style={{ background: 'var(--app-surface)' }}
                 borderWidth="1px"
                 borderColor="border.subtle"
                 borderRadius="md"

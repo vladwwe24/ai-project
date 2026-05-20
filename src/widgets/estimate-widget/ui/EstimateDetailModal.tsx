@@ -174,13 +174,12 @@ export function EstimateDetailModal({ estimate, open, onClose }: Props) {
           </Box>
 
           {estimate.status === EstimateStatus.SENT && approvalLink && (
-            <Box mt={3} p={2} bg="blue.50" borderRadius="md">
-              <Text fontSize="sm" color="blue.700" mb={1}>
+            <Box mt={3} p={2} borderRadius="md" style={{ background: 'var(--banner-info-bg)', color: 'var(--banner-info-fg)' }}>
+              <Text fontSize="sm" mb={1}>
                 Sent — awaiting customer approval.
               </Text>
               <Text
                 fontSize="xs"
-                color="blue.600"
                 cursor="pointer"
                 textDecoration="underline"
                 onClick={() => navigator.clipboard.writeText(approvalLink).catch(() => {})}
@@ -191,8 +190,8 @@ export function EstimateDetailModal({ estimate, open, onClose }: Props) {
           )}
 
           {estimate.status === EstimateStatus.APPROVED && (
-            <Box mt={3} p={2} bg="green.50" borderRadius="md">
-              <Text fontSize="sm" color="green.700">
+            <Box mt={3} p={2} borderRadius="md" style={{ background: 'var(--banner-success-bg)', color: 'var(--banner-success-fg)' }}>
+              <Text fontSize="sm">
                 Approved
                 {estimate.approvedAt
                   ? ` on ${new Date(estimate.approvedAt).toLocaleDateString()}`
@@ -203,8 +202,8 @@ export function EstimateDetailModal({ estimate, open, onClose }: Props) {
           )}
 
           {estimate.status === EstimateStatus.REJECTED && (
-            <Box mt={3} p={2} bg="red.50" borderRadius="md">
-              <Text fontSize="sm" color="red.700">Declined by customer.</Text>
+            <Box mt={3} p={2} borderRadius="md" style={{ background: 'var(--banner-error-bg)', color: 'var(--banner-error-fg)' }}>
+              <Text fontSize="sm">Declined by customer.</Text>
             </Box>
           )}
         </Box>

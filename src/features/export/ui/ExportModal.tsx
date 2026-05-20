@@ -15,7 +15,8 @@ const inputStyle = {
   border: '1px solid var(--chakra-colors-border)',
   borderRadius: '6px',
   fontSize: '14px',
-  background: 'white',
+  background: 'var(--app-surface)',
+  color: 'inherit',
 }
 
 export function ExportModal({ open, onClose }: Props) {

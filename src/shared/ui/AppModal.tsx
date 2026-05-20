@@ -36,7 +36,7 @@ export function AppModal({ open, onClose, title, size = 'md', footer, children }
       >
         <DialogBackdrop />
         <DialogPositioner>
-          <DialogContent maxW={maxW} w="full" mx={4}>
+          <DialogContent maxW={maxW} w="full" mx={4} style={{ background: 'var(--app-surface)' }}>
             <DialogHeader display="flex" alignItems="center" justifyContent="space-between" pr={2}>
               <DialogTitle>{title}</DialogTitle>
               <Button size="sm" variant="ghost" onClick={onClose} aria-label="Close">
@@ -44,7 +44,7 @@ export function AppModal({ open, onClose, title, size = 'md', footer, children }
               </Button>
             </DialogHeader>
             <DialogBody>{children}</DialogBody>
-            {footer && <DialogFooter gap={2}>{footer}</DialogFooter>}
+            {footer && <DialogFooter gap={2} style={{ background: 'var(--app-surface)' }}>{footer}</DialogFooter>}
             <DialogCloseTrigger />
           </DialogContent>
         </DialogPositioner>

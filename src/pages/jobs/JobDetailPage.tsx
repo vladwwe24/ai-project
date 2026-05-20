@@ -146,7 +146,7 @@ export function JobDetailPage() {
   return (
     <Box pb={8}>
       {/* Header image area */}
-      <Box position="relative" height="180px" bg="gray.200" overflow="hidden">
+      <Box position="relative" height="180px" style={{ background: 'var(--app-surface)' }} overflow="hidden">
         <Flex
           position="absolute"
           top={0}
@@ -160,8 +160,7 @@ export function JobDetailPage() {
         >
           <IconButton
             aria-label="Back"
-            variant="solid"
-            bg="whiteAlpha.900"
+            variant="ghost"
             size="sm"
             borderRadius="full"
             onClick={() => navigate('/jobs')}
@@ -170,8 +169,7 @@ export function JobDetailPage() {
           </IconButton>
           <IconButton
             aria-label="More options"
-            variant="solid"
-            bg="whiteAlpha.900"
+            variant="ghost"
             size="sm"
             borderRadius="full"
             onClick={() => setSettingsOpen(true)}
@@ -187,11 +185,11 @@ export function JobDetailPage() {
           justify="center"
           direction="column"
           gap={1}
-          color="gray.500"
+          color="fg.muted"
         >
           <MdLocationOn size={32} />
           {customer?.address && (
-            <Text fontSize="xs" textAlign="center" px={8} color="gray.600">
+            <Text fontSize="xs" textAlign="center" px={8} color="fg.muted">
               {customer.address}
             </Text>
           )}
@@ -223,7 +221,7 @@ export function JobDetailPage() {
       </Flex>
 
       {/* Appointment card */}
-      <Box mx={4} mb={3} bg="white" borderRadius="xl" boxShadow="sm" px={4} py={3}>
+      <Box mx={4} mb={3} style={{ background: 'var(--app-surface)' }} borderRadius="xl" boxShadow="sm" px={4} py={3}>
         <Flex align="center" gap={2} mb={3}>
           <MdCalendarToday color="var(--chakra-colors-blue-500)" />
           <Text fontWeight="semibold" flex={1}>Job Schedule</Text>
@@ -264,7 +262,7 @@ export function JobDetailPage() {
       </Box>
 
       {/* Job status card */}
-      <Box mx={4} mb={3} bg="white" borderRadius="xl" boxShadow="sm" overflow="hidden">
+      <Box mx={4} mb={3} style={{ background: 'var(--app-surface)' }} borderRadius="xl" boxShadow="sm" overflow="hidden">
         <Flex
           align="center"
           px={4}
@@ -286,7 +284,7 @@ export function JobDetailPage() {
       </Box>
 
       {/* Customer card */}
-      <Box mx={4} mb={3} bg="white" borderRadius="xl" boxShadow="sm" overflow="hidden">
+      <Box mx={4} mb={3} style={{ background: 'var(--app-surface)' }} borderRadius="xl" boxShadow="sm" overflow="hidden">
         <Flex align="center" px={4} py={3} borderBottomWidth="1px" borderColor="border.subtle">
           <Text fontWeight="semibold" flex={1}>Customer</Text>
         </Flex>

@@ -87,7 +87,7 @@ export function InvoiceWidget({ jobId }: Props) {
   }
 
   return (
-    <Box boxShadow="sm" borderRadius="xl" p={3}>
+    <Box boxShadow="sm" borderRadius="xl" p={3} style={{ background: 'var(--app-surface)' }}>
       {/* Header */}
       <Flex align="center" justify="space-between" mb={3}>
         <Flex align="center" gap={2}>
@@ -149,13 +149,13 @@ export function InvoiceWidget({ jobId }: Props) {
         {invoice.paidAmount !== undefined && (
           <>
             <Flex justify="space-between" mt={1}>
-              <Text fontSize="sm" color="green.600">Paid</Text>
-              <Text fontSize="sm" color="green.600">{formatCurrency(invoice.paidAmount)}</Text>
+              <Text fontSize="sm" style={{ color: 'var(--color-success)' }}>Paid</Text>
+              <Text fontSize="sm" style={{ color: 'var(--color-success)' }}>{formatCurrency(invoice.paidAmount)}</Text>
             </Flex>
             {total - invoice.paidAmount > 0.001 && (
               <Flex justify="space-between">
-                <Text fontSize="sm" color="orange.600" fontWeight="medium">Balance due</Text>
-                <Text fontSize="sm" color="orange.600" fontWeight="medium">
+                <Text fontSize="sm" fontWeight="medium" style={{ color: 'var(--color-warning)' }}>Balance due</Text>
+                <Text fontSize="sm" fontWeight="medium" style={{ color: 'var(--color-warning)' }}>
                   {formatCurrency(total - invoice.paidAmount)}
                 </Text>
               </Flex>
@@ -167,7 +167,7 @@ export function InvoiceWidget({ jobId }: Props) {
       {/* Edit-mode actions */}
       {editMode && (
         <Flex gap={2} mt={3} flexWrap="wrap">
-          {validationError && <Text fontSize="xs" color="red.500" w="full">{validationError}</Text>}
+          {validationError && <Text fontSize="xs" w="full" style={{ color: 'var(--color-error)' }}>{validationError}</Text>}
           <Button size="sm" variant="ghost" ml="auto" onClick={() => {
             setLineItems(invoice.lineItems)
             setTaxRate(invoice.taxRate)

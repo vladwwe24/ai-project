@@ -210,7 +210,7 @@ export function CreateJobModal({ open, initialIso, onClose }: Props) {
                     left={0}
                     right={0}
                     zIndex={20}
-                    bg="white"
+                    style={{ background: 'var(--app-surface)' }}
                     borderWidth="1px"
                     borderColor="border.subtle"
                     borderRadius="md"

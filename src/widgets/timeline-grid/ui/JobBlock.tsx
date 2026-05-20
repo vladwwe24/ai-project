@@ -31,16 +31,19 @@ export function JobBlock({ job, customerName, top, height, columnIndex, totalCol
       left={left}
       width={width}
       height={`${height}px`}
-      bg="blue.100"
+      className="job-block"
       borderLeftWidth="3px"
-      borderLeftColor="blue.500"
       borderRadius="md"
       p={1}
       cursor="pointer"
       overflow="hidden"
       zIndex={1}
       onClick={e => { e.stopPropagation(); onClick() }}
-      _hover={{ bg: 'blue.200' }}
+      style={{
+        background: 'var(--job-block-bg)',
+        color: 'var(--job-block-fg)',
+        borderLeftColor: 'var(--job-block-border)',
+      }}
     >
       <Text fontSize="xs" fontWeight="semibold" lineClamp={1}>
         {job.applianceType}{job.brand ? ` · ${job.brand}` : ''}

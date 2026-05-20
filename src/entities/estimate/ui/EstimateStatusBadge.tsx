@@ -1,11 +1,11 @@
 import { Badge } from '@chakra-ui/react'
 import type { EstimateStatus } from '../model/types'
 
-const colorMap: Record<EstimateStatus, string> = {
-  DRAFT: 'gray',
-  SENT: 'blue',
-  APPROVED: 'green',
-  REJECTED: 'red',
+const varMap: Record<EstimateStatus, string> = {
+  DRAFT:    'neutral',
+  SENT:     'info',
+  APPROVED: 'success',
+  REJECTED: 'danger',
 }
 
 const labelMap: Record<EstimateStatus, string> = {
@@ -20,8 +20,9 @@ interface Props {
 }
 
 export function EstimateStatusBadge({ status }: Props) {
+  const k = varMap[status]
   return (
-    <Badge colorPalette={colorMap[status]} variant="subtle">
+    <Badge variant="subtle" style={{ background: `var(--badge-${k}-bg)`, color: `var(--badge-${k}-fg)` }}>
       {labelMap[status]}
     </Badge>
   )

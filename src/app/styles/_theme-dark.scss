@@ -4,4 +4,32 @@
   --app-surface: #16213e;
   --app-nav-bg: #0a1018;
   --app-hover: rgba(99, 120, 255, 0.07);
+
+  /* semantic text colors */
+  --color-success: #4ade80;
+  --color-warning: #fb923c;
+  --color-error:   #f87171;
+  --color-info:    #60a5fa;
+
+  /* status badge bg + fg */
+  --badge-success-bg: #14532d;  --badge-success-fg: #86efac;
+  --badge-danger-bg:  #450a0a;  --badge-danger-fg:  #fca5a5;
+  --badge-warning-bg: #422006;  --badge-warning-fg: #fcd34d;
+  --badge-info-bg:    #1e3a5f;  --badge-info-fg:    #93c5fd;
+  --badge-neutral-bg: #1f2937;  --badge-neutral-fg: #9ca3af;
+  --badge-orange-bg:  #431407;  --badge-orange-fg:  #fdba74;
+  --badge-purple-bg:  #2e1065;  --badge-purple-fg:  #c4b5fd;
+  --badge-teal-bg:    #042f2e;  --badge-teal-fg:    #5eead4;
+  --badge-cyan-bg:    #083344;  --badge-cyan-fg:    #67e8f9;
+
+  /* status banners */
+  --banner-info-bg:    #0c1a3d;  --banner-info-fg:    #93c5fd;
+  --banner-success-bg: #052e16;  --banner-success-fg: #86efac;
+  --banner-error-bg:   #1a0000;  --banner-error-fg:   #fca5a5;
+
+  /* timeline job block */
+  --job-block-bg:       #1e3a5f;
+  --job-block-hover-bg: #1a3358;
+  --job-block-border:   #3b82f6;
+  --job-block-fg:       #bfdbfe;
 }
